@@ -1,0 +1,212 @@
+name: Build and Release on Tag
+
+# Push a tag "vX.Y.Z" (matching <Version> in Personnel.csproj) and this builds Release, publishes a GitHub
+# Release, and uploads to Thunderstore + Nexus. Mirrors the Inkorporated pipeline.
+#
+# One-time setup:
+#   - Private build-libs repo  ${owner}/ScheduleOne-Workspace  must contain:
+#       lib/il2cpp/game        (game managed DLLs incl. Assembly-CSharp, Il2Cppmscorlib, Il2CppSystem, and the
+#                               Unity modules Personnel references: CoreModule, ImageConversionModule)
+#       lib/il2cpp/melonloader (MelonLoader, 0Harmony, Il2CppInterop.Runtime, Newtonsoft.Json)
+#       lib/il2cpp/s1api       (S1API.Il2Cpp.MelonLoader.dll)
+#   - Secrets: WORKSPACE_TOKEN (SSH deploy key for that repo), THUNDERSTORE_TOKEN, NEXUSMODS_API_KEY.
+#   - Repo/org variable NEXUS_FILE_GROUP_ID = the Nexus mod's file group id (the Nexus upload job is skipped
+#     until this is set, so GitHub + Thunderstore releases work immediately).
+#   - thunderstore/icon.png must be exactly 256x256 (Thunderstore requirement).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version-check.outputs.version }}
+      notes: ${{ steps.changelog.outputs.notes }}
+      notes_bbcode: ${{ steps.changelog.outputs.notes_bbcode }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Workspace repository (build libs)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ScheduleOne-Workspace
+          path: Workspace
+          ssh-key: ${{ secrets.WORKSPACE_TOKEN }}
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+
+      - name: Verify version in csproj matches the tag
+        id: version-check
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          CS_VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" Personnel.csproj)
+          if [ "$TAG_VERSION" != "$CS_VERSION" ]; then
+            echo "Version mismatch: Tag version is $TAG_VERSION, but csproj version is $CS_VERSION"
+            exit 1
+          fi
+          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract release notes from CHANGELOG.md
+        id: changelog
+        run: |
+          # Single source of truth is the hand-maintained CHANGELOG.md. Pull out the section for
+          # this version; it is reused for the GitHub release body and the Nexus file description.
+          VERSION="${{ steps.version-check.outputs.version }}"
+          SECTION=$(awk -v v="$VERSION" 'index($0,"## ["v"]")==1{grab=1;next} index($0,"## [")==1{if(grab)exit} grab{print}' CHANGELOG.md)
+          if [ -z "$SECTION" ]; then
+            echo "::warning::No CHANGELOG.md section found for $VERSION"
+            SECTION="See CHANGELOG.md for details."
+          fi
+          # Markdown notes - GitHub renders Markdown in release bodies.
+          {
+            echo "notes<<CHANGELOG_EOF"
+            echo "$SECTION"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+          # Nexus file descriptions use BBCode, not Markdown. Convert "### Heading" to [b]Heading[/b],
+          # "- item" bullets to [list]/[*], drop inline-code backticks, and join wrapped bullet lines.
+          BBCODE=$(printf '%s\n' "$SECTION" | awk '
+            function flush(){ if(buf!=""){ printf "[*]%s\n", buf; buf="" } }
+            BEGIN{ inlist=0; buf="" }
+            {
+              line=$0; gsub(/`/,"",line); sub(/[ \t]+$/,"",line)
+              if (line ~ /^### /){ flush(); if(inlist){print "[/list]"; inlist=0} h=line; sub(/^### /,"",h); printf "[b]%s[/b]\n", h; next }
+              if (line ~ /^- /){ flush(); if(!inlist){print "[list]"; inlist=1} buf=line; sub(/^- /,"",buf); next }
+              if (line ~ /^[ \t]*$/){ next }
+              sub(/^[ \t]+/,"",line); if(buf!="") buf=buf " " line; else printf "%s\n", line
+            }
+            END{ flush(); if(inlist) print "[/list]" }')
+          {
+            echo "notes_bbcode<<CHANGELOG_EOF"
+            echo "$BBCODE"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build the project (Release, IL2CPP)
+        run: dotnet build Personnel.csproj --configuration Release /p:WorkspaceLibPath="${{ github.workspace }}/Workspace/lib"
+
+      - name: Prepare release directory
+        run: |
+          mkdir -p release
+          cp bin/Release/net6.0/Personnel.dll release/
+          if [ -d "thunderstore" ]; then
+            cp -r thunderstore/* release/ 2>/dev/null || true
+            if [ -f "release/manifest.json" ]; then
+              sed -i "s/\"version_number\": \".*\"/\"version_number\": \"${{ steps.version-check.outputs.version }}\"/" release/manifest.json
+            fi
+          fi
+          # Ship LICENSE + the maintained CHANGELOG inside the package.
+          [ -f "LICENSE.md" ] && cp LICENSE.md release/ || true
+          [ -f "CHANGELOG.md" ] && cp CHANGELOG.md release/ || true
+          # Recreate README.md as UTF-8 without BOM (Thunderstore renders it on the mod page).
+          if [ -f "thunderstore/README.md" ]; then
+            cat thunderstore/README.md | iconv -f UTF-8 -t UTF-8//IGNORE > release/README.md 2>/dev/null || \
+            sed '1s/^\xEF\xBB\xBF//' thunderstore/README.md > release/README.md || \
+            cp thunderstore/README.md release/README.md
+          fi
+
+      - name: Create release ZIP
+        run: cd release && zip -r "../Personnel_${{ steps.version-check.outputs.version }}.zip" . && cd ..
+
+      - name: Upload Release ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Personnel
+          path: "Personnel_${{ steps.version-check.outputs.version }}.zip"
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: Personnel
+
+      - name: Extract DLL from ZIP
+        run: |
+          unzip -q "Personnel_${{ needs.build.outputs.version }}.zip" -d release/
+          ls -la release/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/Personnel.dll
+          body: |
+            ## Changes in ${{ needs.build.outputs.version }}
+
+            ${{ needs.build.outputs.notes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  thunderstore:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download built ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: Personnel
+
+      - name: Extract ZIP for Thunderstore
+        run: |
+          mkdir -p thunderstore-package
+          unzip -q "Personnel_${{ needs.build.outputs.version }}.zip" -d thunderstore-package/
+
+      - name: Upload to Thunderstore
+        uses: GreenTF/upload-thunderstore-package@v4.3
+        with:
+          token: ${{ secrets.THUNDERSTORE_TOKEN }}
+          community: schedule-i
+          repo: thunderstore.io
+          namespace: DooDesch
+          name: Personnel
+          description: The NPC framework for Schedule I - NPC packs as plain folders, spawned by mods as real S1API NPCs.
+          version: ${{ needs.build.outputs.version }}
+          path: thunderstore-package
+          deps: |
+            LavaGang-MelonLoader-0.7.3
+            ifBars-S1API_Forked-3.0.5
+          categories: |
+            Mods
+
+  nexus:
+    needs: build
+    runs-on: ubuntu-latest
+    # Skipped until the Nexus mod page exists and its file group id is set as the repo/org variable.
+    if: ${{ vars.NEXUS_FILE_GROUP_ID != '' }}
+    steps:
+      - name: Download built ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: Personnel
+
+      - name: Upload to Nexus Mods
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.7
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_group_id: ${{ vars.NEXUS_FILE_GROUP_ID }}
+          filename: "Personnel_${{ needs.build.outputs.version }}.zip"
+          version: ${{ needs.build.outputs.version }}
+          display_name: "Personnel ${{ needs.build.outputs.version }}"
+          description: ${{ needs.build.outputs.notes_bbcode }}
+          file_category: main
+          archive_existing_file: true

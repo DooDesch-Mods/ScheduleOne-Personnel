@@ -1,0 +1,16 @@
+# Build output
+bin/
+obj/
+
+# IDE
+.vs/
+.claude/
+*.user
+*.suo
+
+# Deployed copy (PostBuild copies the DLL into the game Mods folder)
+Mods/
+
+# OS
+Thumbs.db
+.DS_Store

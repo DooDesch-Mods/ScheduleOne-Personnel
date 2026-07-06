@@ -1,0 +1,11 @@
+{
+  "name": "Personnel",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/DooDesch-Mods/ScheduleOne-Personnel",
+  "description": "The NPC framework for Schedule I. NPC packs as plain folders; mods spawn them as real S1API NPCs - networked, saved, walking the world as if hand-coded.",
+  "dependencies": [
+    "LavaGang-MelonLoader-0.7.3",
+    "ifBars-S1API_Forked-3.0.5"
+  ],
+  "contributors": [ "DooDesch" ]
+}
