@@ -17,6 +17,14 @@ Personnel is primarily a **library / dependency**. On its own it adds no NPCs - 
 packs and NPC-spawning mods depend on. Install it alongside an NPC pack (or flip on the bundled
 example pack) and consumer mods can bring those NPCs into the world.
 
+## Documentation
+
+- 📖 **[Wiki](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/wiki)** - the full guide: pack
+  format and id rules, the API (spawning real S1API NPCs), custom PNG layer authoring, multiplayer,
+  troubleshooting.
+- 🧩 **[Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify)** - the in-game editor that
+  designs and exports these packs.
+
 ## Features
 
 - **Real S1API NPCs, not props.** A consumer mod turns any pack definition into a full S1API NPC -
