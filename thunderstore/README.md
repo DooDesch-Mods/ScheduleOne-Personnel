@@ -20,6 +20,10 @@
 - Deep appearance: body, skin, hair, face, eyes, eyebrows, clothing, accessories and custom PNG layers.
 - Duplicate-proof NPC ids, derived as `packname_npcname`.
 
+**Early release:** the core paths are verified in-game, but 1.0.0 has not yet seen extended real-world
+testing - it will mature over the coming releases. Reports at
+[support.doodesch.de](https://support.doodesch.de) directly shape the next version.
+
 ## Requirements
 
 - **Schedule I** (IL2CPP) with **MelonLoader 0.7.3+**.

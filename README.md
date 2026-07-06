@@ -17,6 +17,13 @@ Personnel is primarily a **library / dependency**. On its own it adds no NPCs - 
 packs and NPC-spawning mods depend on. Install it alongside an NPC pack (or flip on the bundled
 example pack) and consumer mods can bring those NPCs into the world.
 
+## Project status
+
+Personnel 1.0.0 is an early release. The core paths - pack loading, appearance realisation and S1API
+spawning - are verified in-game, but the mod has not yet seen extended real-world testing across a wide
+range of packs, saves and multiplayer sessions. Expect it to mature over the coming releases; if something
+misbehaves, a report at [support.doodesch.de](https://support.doodesch.de) directly shapes the next version.
+
 ## Documentation
 
 - 📖 **[Wiki](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/wiki)** - the full guide: pack
