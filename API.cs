@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using DooDesch.AvatarKit;
 using Il2CppScheduleOne.AvatarFramework;
 using Personnel.Appearance;
 using Personnel.Model;
 using Personnel.Registration;
 using S1API.Entities;
 using UnityEngine;
+using Avatar = Il2CppScheduleOne.AvatarFramework.Avatar;
 
 namespace Personnel
 {
@@ -48,6 +50,20 @@ namespace Personnel
             if (s == null) return false;
             avatar.LoadAvatarSettings(s);
             return true;
+        }
+
+        /// <summary>
+        /// Apply a definition's extreme body distortion (Personify's Experimental tab: bone scale/hide, mesh hide)
+        /// onto a live avatar. A separate pass from <see cref="ApplyAppearance"/> since vanilla AvatarSettings has
+        /// no such concept - call this right after loading the normal appearance.
+        /// </summary>
+        public static void ApplyDistortion(Avatar avatar, NpcDef def)
+        {
+            if (avatar == null || def?.Appearance == null) return;
+            var entries = new Dictionary<string, (Vector3 scale, bool hide)>();
+            foreach (var kv in def.Appearance.Distortion)
+                if (kv.Value != null) entries[kv.Key] = (kv.Value.Scale, kv.Value.Hide);
+            AvatarDistortion.Apply(avatar, entries);
         }
 
         /// <summary>Rescan the packs folder (drops+reloads pack-sourced defs, keeps API-registered ones).</summary>

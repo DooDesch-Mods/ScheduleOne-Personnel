@@ -1,3 +1,4 @@
+using Il2CppScheduleOne.AvatarFramework;
 using Personnel.Model;
 using S1API.Entities;
 
@@ -34,6 +35,18 @@ namespace Personnel
                 API.ConfigureFromDef(builder, def);
             else
                 Core.Log?.Warning($"[Personnel] PersonnelNpc: no definition '{DefId}' found - is the pack installed?");
+        }
+
+        // AvatarSettings (applied above, in ConfigurePrefab -> WithAppearanceDefaults) can't express bone
+        // distortion, so it's applied here as a separate pass once a real Avatar exists on the spawned NPC.
+        protected override void OnCreated()
+        {
+            base.OnCreated();
+            if (API.TryGet(DefId, out NpcDef def) && def != null)
+            {
+                var avatar = gameObject.GetComponentInChildren<Avatar>(true);
+                if (avatar != null) API.ApplyDistortion(avatar, def);
+            }
         }
     }
 }

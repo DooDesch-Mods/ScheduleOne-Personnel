@@ -128,6 +128,17 @@ namespace Personnel.Content
             AppendLayers(a.faceLayers, ap.FaceLayers);
             AppendLayers(a.bodyLayers, ap.BodyLayers);
             AppendLayers(a.accessories, ap.Accessories);
+
+            if (a.distortion != null)
+                foreach (var kv in a.distortion)
+                {
+                    if (kv.Value == null) continue;
+                    ap.Distortion[kv.Key] = new BoneDistortion
+                    {
+                        Scale = new Vector3(kv.Value.scaleX ?? 1f, kv.Value.scaleY ?? 1f, kv.Value.scaleZ ?? 1f),
+                        Hide = kv.Value.hide ?? false
+                    };
+                }
             return ap;
         }
 

@@ -4,6 +4,11 @@
        (where the Workspace repo is checked out to ./Workspace, not ../Workspace) just skips it. -->
   <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props')" />
 
+  <!-- Shared avatar bone-distortion helper (feeds Personify's Experimental tab at spawn time) - linked source,
+       dual-path like DooDeschUI.props (required, not optional like Snitch above). -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props')" />
+
   <!-- CI checks out the shared Workspace repo as a SUBFOLDER of this project; exclude it from the default glob
        (this mod compiles only its own source; anything needed from Workspace is linked explicitly via props). -->
   <ItemGroup>
@@ -91,6 +96,11 @@
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>$(GameManagedPath)/UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- SkinnedMeshRenderer (bone-distortion body-mesh hide, via AvatarDistortion.props). -->
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>$(GameManagedPath)/UnityEngine.AnimationModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

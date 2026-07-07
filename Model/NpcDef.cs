@@ -68,6 +68,17 @@ namespace Personnel.Model
         public List<NpcLayer> FaceLayers = new List<NpcLayer>();
         public List<NpcLayer> BodyLayers = new List<NpcLayer>();
         public List<NpcLayer> Accessories = new List<NpcLayer>();
+
+        /// <summary>Extreme body distortion (Personify's Experimental tab), keyed by bone/mesh name. Not part of
+        /// vanilla AvatarSettings - applied separately, see <see cref="API.ApplyDistortion"/>. Never null.</summary>
+        public Dictionary<string, BoneDistortion> Distortion = new Dictionary<string, BoneDistortion>();
+    }
+
+    /// <summary>One bone's (or mesh's) distortion: non-uniform scale, or fully hidden.</summary>
+    public sealed class BoneDistortion
+    {
+        public Vector3 Scale = Vector3.one;
+        public bool Hide;
     }
 
     /// <summary>

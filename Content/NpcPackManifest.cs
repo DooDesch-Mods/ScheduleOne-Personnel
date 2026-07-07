@@ -50,6 +50,17 @@ namespace Personnel.Content
         public List<LayerJson> faceLayers;
         public List<LayerJson> bodyLayers;
         public List<LayerJson> accessories;
+        /// <summary>Extreme body distortion (Personify's Experimental tab), keyed by bone/mesh name. Omitted for plain NPCs.</summary>
+        public Dictionary<string, BoneDistortionJson> distortion;
+    }
+
+    /// <summary>One bone's (or mesh's) distortion: non-uniform scale, or fully hidden.</summary>
+    public sealed class BoneDistortionJson
+    {
+        public float? scaleX;
+        public float? scaleY;
+        public float? scaleZ;
+        public bool? hide;
     }
 
     public sealed class EyeJson
