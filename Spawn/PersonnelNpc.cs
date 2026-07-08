@@ -47,6 +47,10 @@ namespace Personnel
                 var avatar = gameObject.GetComponentInChildren<Avatar>(true);
                 if (avatar != null) API.ApplyDistortion(avatar, def);
             }
+
+            // Give the spawned NPC a map marker so players can find it on the phone map (the
+            // relationship is unlocked at prefab-config time so it also shows a real name in Contacts).
+            API.AddMapMarker(gameObject);
         }
     }
 }

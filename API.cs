@@ -8,6 +8,7 @@ using Personnel.Registration;
 using S1API.Entities;
 using UnityEngine;
 using Avatar = Il2CppScheduleOne.AvatarFramework.Avatar;
+using S1NPCs = Il2CppScheduleOne.NPCs;
 
 namespace Personnel
 {
@@ -82,8 +83,43 @@ namespace Personnel
             SplitName(def.DisplayName, out string first, out string last);
             builder.WithIdentity(def.Id, first, last);
             builder.WithAppearanceDefaults(ab => AvatarSettingsFactory.ApplyToDefaults(ab, def));
+
+            // Make the NPC a real phone contact. Vanilla ContactsDetailPanel shows "???" and hides the
+            // map button for any NPC whose relationship is locked; unlocking it once (respected against
+            // save data by S1API) makes the real name render. This is a cosmetic contact only - no
+            // economy role - which also keeps clear of the vanilla NRE that triggers when a role-less NPC
+            // is left in the "mutually known but locked" state.
+            builder.WithRelationshipDefaults(r => r.SetUnlocked(true));
+
+            // Optional economy role, opt-in per pack via behavior.conversation. Default ("none"/null)
+            // stays a plain cosmetic contact - not every NPC should be a customer.
+            string role = def.Behavior?.Conversation;
+            if (string.Equals(role, "customer", StringComparison.OrdinalIgnoreCase))
+                builder.WithCustomerDefaults(_ => { });
+            else if (string.Equals(role, "dealer", StringComparison.OrdinalIgnoreCase))
+                builder.WithDealerDefaults(_ => { });
+
             if (def.Spawn?.Position != null)
                 builder.WithSpawnPosition(def.Spawn.Position.Value, Quaternion.identity);
+        }
+
+        /// <summary>
+        /// Adds a map marker (the game's own <c>NPCPoI</c>) to a live custom NPC so players can find it on the
+        /// phone map. Client-local and cosmetic - no economy role, no networking. Safe to call once the NPC
+        /// object exists (e.g. from <see cref="PersonnelNpc"/>'s creation hook); no-ops if the map manager or
+        /// NPC component is not ready.
+        /// </summary>
+        public static void AddMapMarker(GameObject npcRoot)
+        {
+            if (npcRoot == null || !S1NPCs.NPCManager.InstanceExists) return;
+            var mgr = S1NPCs.NPCManager.Instance;
+            if (mgr == null || mgr.NPCPoIPrefab == null) return;
+            var npc = npcRoot.GetComponent<S1NPCs.NPC>();
+            if (npc == null) return;
+
+            var poi = UnityEngine.Object.Instantiate(mgr.NPCPoIPrefab, npcRoot.transform);
+            poi.SetNPC(npc);
+            poi.enabled = true;
         }
 
         // "Pale Faceling" -> ("Pale", "Faceling"); single word -> (word, ""); empty -> ("NPC", "").

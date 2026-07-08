@@ -3,6 +3,19 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-07-08
+
+### Fixed
+
+- Custom NPCs now show their real name in the phone Contacts app (previously "???") and can be found
+  on the map. Personnel unlocks each spawned NPC's contact and gives it a map marker.
+
+### Added
+
+- Opt-in economy roles via a pack's `behavior.conversation`: `"customer"` or `"dealer"` makes the NPC
+  a real customer or dealer, while the default `"none"` stays a plain, non-economy contact.
+- `API.AddMapMarker(GameObject)` to add a map marker to any live custom NPC.
+
 ## [1.0.0] - 2026-07-06
 
 Initial release.
