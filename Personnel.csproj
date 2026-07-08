@@ -4,16 +4,18 @@
        (where the Workspace repo is checked out to ./Workspace, not ../Workspace) just skips it. -->
   <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props')" />
 
-  <!-- Shared avatar bone-distortion helper (feeds Personify's Experimental tab at spawn time) - linked source,
-       dual-path like DooDeschUI.props (required, not optional like Snitch above). -->
-  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props')" />
-  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props')" />
-
   <!-- CI checks out the shared Workspace repo as a SUBFOLDER of this project; exclude it from the default glob
        (this mod compiles only its own source; anything needed from Workspace is linked explicitly via props). -->
   <ItemGroup>
     <Compile Remove="Workspace/**/*.cs" />
   </ItemGroup>
+
+  <!-- Shared avatar bone-distortion helper (namespace DooDesch.AvatarKit), linked source. Imported AFTER the
+       Workspace glob-removal above so the one linked file it adds survives it (in CI the Workspace subfolder path
+       Workspace/avatar/... would otherwise be stripped by the removal). Dual-path so it resolves both locally
+       (Workspace is a sibling) and in CI (Workspace is a subfolder). -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props')" />
 
   <!--
     Personnel - MelonLoader IL2CPP NPC-library mod for Schedule I (provider half of the Personnel/Personify pair,
