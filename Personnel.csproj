@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Shared release hardening: strip Release debug info + assembly identity, cuts AV false positives (see Workspace/build/Hardening.props). -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Hardening.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Hardening.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/Hardening.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/Hardening.props')" />
+
   <!-- Optional Snitch profiler in Debug builds (no-op when the Snitch host is absent). Exists-guarded so CI
        (where the Workspace repo is checked out to ./Workspace, not ../Workspace) just skips it. -->
   <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props')" />
