@@ -2,27 +2,28 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
-> **The NPC framework for Schedule I.** NPC packs are plain folders (designed in-game with Personify
-> or written by hand); mods spawn them as real S1API NPCs - networked, saved, walking the world as if
-> hand-coded. On its own this mod adds no NPCs; it's the dependency NPC packs and NPC mods are built on.
+> **The NPC framework for Schedule I.** NPC packs are plain folders - spawn points, daily schedules,
+> customer/dealer economy, relationships, contacts - and Personnel spawns them as real S1API NPCs:
+> networked, saved, walking their routines. Since 2.0, no mod code needed at all.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 
 ## What it does
 
-- Loads NPC packs from `UserData/Personnel/Packs/<PackName>/` - a `manifest.json` plus optional PNGs
-  (custom layers like tattoos). No code required to make one: use the in-game editor **Personify**.
-- Lets mods spawn any pack NPC as a **full S1API NPC** with one tiny subclass - prefab, networking and
-  save/load handled by S1API - or apply just the designed look to any avatar via the API.
-- Deep appearance: body, skin, hair, face, eyes, eyebrows, clothing, accessories and custom PNG layers.
-- Duplicate-proof NPC ids, derived as `packname_npcname`.
-
-**Early release:** the core paths are verified in-game, but 1.0.0 has not yet seen extended real-world
-testing - it will mature over the coming releases. Reports at
-[support.doodesch.de/personnel](https://support.doodesch.de/personnel) directly shape the next version.
+- **NPC mods without code.** A pack's `manifest.json` can carry everything: spawn point and region,
+  a daily schedule (walk routes, buildings, seats, vending machines, slot machines, dialogue spots,
+  car trips), customer or dealer economy, inventory, relationships and contact presentation. Set
+  `"autoRegister": true` and Personnel spawns the NPCs as real world NPCs on its own.
+- **Real S1API NPCs, not props** - prefab, networking, save/load and mugshot handled by S1API, the
+  same machinery hand-coded NPC mods use.
+- **Physical or contact-only.** Most roster NPCs can stay phone contacts (near-zero cost); only the
+  ones that should walk the world are physical. Big packs stay fast, also on Steam Deck.
+- Deep appearance: body, skin, hair, face, eyes, eyebrows, clothing, accessories and custom PNG
+  layers (e.g. tattoos). Design packs live in-game with **Personify**.
+- Stable, save-safe NPC ids with rename escape hatches (`packId`, `saveId`).
 
 ## Requirements
 
@@ -33,13 +34,20 @@ testing - it will mature over the coming releases. Reports at
 ## Using it
 
 Install Personnel plus any NPC pack or NPC mod that depends on it. Packs live in
-`UserData/Personnel/Packs/<PackName>/`; on startup the log lists each pack with its NPC ids.
+`UserData/Personnel/Packs/<PackName>/`; on startup the log lists each pack with its NPC ids and how
+many were auto-registered. In co-op, everyone needs the same packs installed - the same rule as for
+mods.
 
 Want a template? Set **`LoadExamplePack`** to `true` (Mod Manager & Phone App UI or
-`UserData/MelonPreferences.cfg` under `Personnel_01_Main`) and restart - a small example pack with two
-NPCs is dropped into `Packs/Examples` to copy.
+`UserData/MelonPreferences.cfg` under `Personnel_01_Main`) and restart - a small example pack is
+dropped into `Packs/Examples`, including an NPC with a spawn point and daily schedule to copy.
 
-## For developers
+## For pack authors and developers
+
+Every manifest block (spawn, schedule, customer, dealer, inventory, relationships, contact) is
+documented on the
+[Pack Format wiki page](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/wiki/Pack-Format).
+Mods can still bring pack NPCs in with one tiny subclass:
 
 ```csharp
 public sealed class PaleNpc : Personnel.PersonnelNpc
@@ -49,13 +57,15 @@ public sealed class PaleNpc : Personnel.PersonnelNpc
 var npc = new PaleNpc();   // spawns a fully networked, saved S1API NPC from the pack definition
 ```
 
-Full pack format, API reference and a working example consumer on
+Full pack format, API reference and examples on
 [GitHub](https://github.com/DooDesch-Mods/ScheduleOne-Personnel).
 
 ## Settings
 
-`LoadExamplePack` (default `false`) - drop the bundled example pack on disk as a template. Editable in
-the Mod Manager & Phone App UI or `UserData/MelonPreferences.cfg`.
+- `LoadExamplePack` (default `false`) - drop the bundled example pack on disk as a template.
+- `EnableAutoRegister` (default `true`) - kill switch for pack auto-registration.
+
+Editable in the Mod Manager & Phone App UI or `UserData/MelonPreferences.cfg`.
 
 ## License
 

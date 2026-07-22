@@ -7,22 +7,15 @@
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world
 > as if the mod author had built them in code. Built on [S1API](https://github.com/ifBars/S1API).
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 ![Type](https://img.shields.io/badge/type-library%2Fdependency-lightgrey)
 
 Personnel is primarily a **library / dependency**. On its own it adds no NPCs - it's the thing NPC
-packs and NPC-spawning mods depend on. Install it alongside an NPC pack (or flip on the bundled
-example pack) and consumer mods can bring those NPCs into the world.
-
-## Project status
-
-Personnel 1.0.0 is an early release. The core paths - pack loading, appearance realisation and S1API
-spawning - are verified in-game, but the mod has not yet seen extended real-world testing across a wide
-range of packs, saves and multiplayer sessions. Expect it to mature over the coming releases; if something
-misbehaves, a report at [support.doodesch.de/personnel](https://support.doodesch.de/personnel) directly shapes the next version.
+packs and NPC-spawning mods depend on. Install it alongside an NPC pack and the NPCs appear:
+since 2.0 a pack can opt into **auto-registration** and needs no mod code at all.
 
 ## Documentation
 
@@ -34,15 +27,21 @@ misbehaves, a report at [support.doodesch.de/personnel](https://support.doodesch
 
 ## Features
 
-- **Real S1API NPCs, not props.** A consumer mod turns any pack definition into a full S1API NPC -
-  prefab, networking, save/load and mugshot handled by S1API - with one tiny subclass (see below).
+- **NPC mods without code.** A pack manifest can carry the whole NPC: spawn point and region, a
+  daily schedule (walk routes, buildings, seats, vending machines, slot machines, dialogue spots,
+  car trips), customer or dealer economy, inventory, relationships and contact presentation. Flip
+  `"autoRegister": true` and Personnel spawns them as real world NPCs that run their day on their
+  own.
+- **Real S1API NPCs, not props.** Prefab, networking, save/load and mugshot are handled by S1API -
+  the same machinery hand-coded NPC mods use.
 - **Deep appearance.** The full avatar-settings surface: body, skin, hair, face, eyes, eyebrows,
   clothing layers, accessories, plus **custom PNG layers** (e.g. tattoos) loaded from the pack folder.
+- **Physical or contact-only.** Most roster NPCs can stay phone contacts (near-zero cost); only the
+  ones that should walk the world are physical. Big packs stay fast, also on Steam Deck.
 - **NPC packs are plain folders** - a `manifest.json` plus optional PNGs under
-  `UserData/Personnel/Packs/<PackName>/`. No code required; design them live in-game with
+  `UserData/Personnel/Packs/<PackName>/`. Design them live in-game with
   [Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify).
-- **Duplicate-proof ids.** Every NPC id is derived as `packname_npcname` (normalized), so packs never
-  collide and consumers reference stable ids.
+- **Stable, save-safe ids** with rename escape hatches (`packId`, `saveId`).
 - **Bundled example pack** (off by default) drops a working manifest template to copy.
 
 ## Requirements
@@ -75,8 +74,9 @@ An NPC pack is just a folder under:
 ```
 
 containing a `manifest.json` and any PNGs it references. On startup Personnel logs each loaded pack
-with the NPC ids it provides. What the NPCs then *do* in the world is up to the consumer mod that
-spawns them.
+with the NPC ids it provides. Packs with `autoRegister` bring their NPCs into the world by
+themselves; older appearance-only packs are used by whatever consumer mod spawns them. In co-op,
+everyone needs the same packs installed - the same rule as for mods.
 
 ## For pack authors: the pack format
 
@@ -88,6 +88,8 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
 {
   "name": "My Pack",
   "author": "you",
+  "schemaVersion": 2,
+  "autoRegister": true,
   "npcs": [
     {
       "name": "Pale",
@@ -95,17 +97,25 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
         "gender": 0.5, "height": 1.0, "weight": 0.4,
         "skinColor": "#8899AA", "hairPath": "", "hairColor": "#101014",
         "faceLayers": [ { "file": "grin.png", "tint": "#FFFFFF" } ]
-      }
+      },
+      "spawn": { "x": -66.4, "y": -2.9, "z": 86.1, "region": "Westville", "physical": true },
+      "schedule": [
+        { "type": "walkTo", "time": "07:30", "position": [-70.1, -2.9, 80.0] },
+        { "type": "stayInBuilding", "time": "09:00", "duration": 240, "building": "Thrifty Threads" }
+      ]
     }
   ]
 }
 ```
 
-- **`name`** is the identity; the NPC's id is always derived as `<packname>_<npcname>` (lowercased,
-  non-alphanumerics collapsed to `_`) - e.g. pack `Examples` + name `Pale` becomes `examples_pale`.
-  A manifest `id` field is ignored.
+- An authored `id` is respected (normalized); without one it is derived as `<packname>_<npcname>`.
+  Ids are the save identity - never change them once a pack shipped (use `saveId` when renaming).
 - Appearance mirrors the S1API avatar-settings surface; every field is optional and defaults to the
   game's baseline. Layers take either a `path` (existing game layer) or a `file` (pack-relative PNG).
+- On top of `appearance` there are `spawn`, `schedule`, `customer`, `dealer`, `inventory`,
+  `relationships` and `contact` blocks - the
+  [Pack Format wiki page](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/wiki/Pack-Format)
+  documents every field.
 - Enable the example pack (Configuration below) for a complete, working template.
 
 ## For mod developers: spawning the NPCs
@@ -137,7 +147,8 @@ under `Personnel_01_Main`.
 
 | Setting | Default | What it does |
 |---|---|---|
-| `LoadExamplePack` | `false` | When on, drops a small example pack into `UserData/Personnel/Packs/Examples` on startup (if not already there) - two ready-made NPCs plus a manifest template to copy. Requires a game restart. Never overwrites an existing Examples folder. |
+| `LoadExamplePack` | `false` | When on, drops a small example pack into `UserData/Personnel/Packs/Examples` on startup (if not already there) - ready-made NPCs plus a manifest template to copy. Requires a game restart. Never overwrites an existing Examples folder. |
+| `EnableAutoRegister` | `true` | Kill switch for pack auto-registration. When off, packs with `autoRegister` load as data only and nothing spawns. Requires a game restart. |
 
 ## How it works
 

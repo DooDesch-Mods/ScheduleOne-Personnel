@@ -25,11 +25,35 @@ namespace Personnel.Model
         /// <summary>The visual definition. Never null (defaults applied on load).</summary>
         public NpcAppearance Appearance = new NpcAppearance();
 
+        /// <summary>
+        /// Save-identity override: the id handed to S1API's WithIdentity and persisted in saves. Lets a pack
+        /// keep old saves working after renaming an NPC (set it to the previous id). Null = <see cref="Id"/>.
+        /// </summary>
+        public string SaveId;
+
         /// <summary>Optional S1API-expressible behaviour. May be null.</summary>
         public NpcBehavior Behavior;
 
         /// <summary>Optional spawn hints for full S1API spawns. May be null.</summary>
         public NpcSpawn Spawn;
+
+        /// <summary>Optional phone-contact presentation (visibility, map marker). May be null.</summary>
+        public NpcContact Contact;
+
+        /// <summary>Optional relationship defaults (delta, unlock, connections). May be null.</summary>
+        public NpcRelationships Relationships;
+
+        /// <summary>Optional customer economy defaults. Presence makes the NPC a customer. May be null.</summary>
+        public NpcCustomer Customer;
+
+        /// <summary>Optional dealer economy defaults. Presence makes the NPC a dealer. May be null.</summary>
+        public NpcDealer Dealer;
+
+        /// <summary>Optional inventory defaults. May be null.</summary>
+        public NpcInventory Inventory;
+
+        /// <summary>Optional daily schedule. May be null or empty.</summary>
+        public List<NpcScheduleAction> Schedule;
 
         /// <summary>
         /// Raw per-consumer extension blocks, keyed by name (e.g. "backrooms"), each the block's minified JSON.
@@ -111,10 +135,21 @@ namespace Personnel.Model
         public string Conversation = "none";
     }
 
-    /// <summary>Spawn hints for full S1API spawns (secondary path).</summary>
+    /// <summary>Spawn hints for full S1API spawns.</summary>
     public sealed class NpcSpawn
     {
         public Vector3? Position;
+
+        /// <summary>Spawn yaw in degrees.</summary>
+        public float? RotationY;
+
+        /// <summary>Map region name (S1API.Map.Region), e.g. "Westville". Empty = unset.</summary>
         public string Region = "";
+
+        /// <summary>Physical world NPC vs. phone-contact only. Null = physical exactly when a schedule exists.</summary>
+        public bool? Physical;
+
+        /// <summary>Auto-register as a world NPC without consumer code (resolved from spawn.auto / pack autoRegister).</summary>
+        public bool Auto;
     }
 }

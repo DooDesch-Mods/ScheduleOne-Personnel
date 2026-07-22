@@ -3,6 +3,45 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] - 2026-07-22
+
+NPC mods without code: a pack manifest can now describe everything an NPC needs - where it spawns,
+what it does all day, its economy role - and Personnel spawns it as a real world NPC on its own.
+
+### Added
+
+- `autoRegister` (pack level) / `spawn.auto` (per NPC): Personnel registers opted-in NPCs as real,
+  networked, saved world NPCs with no consumer mod involved. A kill switch lives in the settings
+  (`EnableAutoRegister`). Packs that already ship a consumer DLL are safe: a compiled NPC class for
+  the same id always wins over the generated one.
+- `spawn` grew `rotationY` (spawn yaw), `region` (now actually applied) and `physical`. Non-physical
+  NPCs are phone contacts only - no world body, no pathing cost. Default: physical exactly when the
+  NPC has a schedule.
+- `schedule`: full daily schedules in the manifest - `walkTo`, `stayInBuilding`, `sit`,
+  `useVendingMachine`, `useAtm`, `useSlotMachine`, `locationDialogue`, `locationAction`,
+  `driveToCarPark`, `dealSignal`. Times are `"HH:MM"` strings.
+- `relationships`: `delta`, `unlocked`, `unlockType`, `connections` (by NPC id).
+- `customer`: the whole customer economy - spending, orders per week, preferred day/time, standards,
+  direct approach, first sample, mutual relation requirement, call-police chance, dependence,
+  affinities, preferred properties.
+- `dealer`: type, cut, signing fee, home, completed-deals variable, quality tolerances. Definitions
+  with a dealer block now get the proper dealer base prefab (previously manifest dealers were built
+  on the civilian prefab).
+- `inventory`: random cash range, startup items (with quantities), clear-each-night.
+- `contact`: `mapMarker: false` removes the phone-map marker, `visible: false` (experimental) skips
+  the contact unlock.
+- `behavior.aggression`, `maxHealth` and `scale` are now actually applied to spawned NPCs.
+- Id stability: an authored `id` in the manifest is respected (previously always derived from folder
+  and name), `packId` pins the derivation prefix, and `saveId` lets a renamed NPC keep matching old
+  saves. `schemaVersion` marks the manifest format (current: 2).
+- Distant custom NPCs get a proper billboard impostor instead of a blank one (on S1API builds that
+  support impostor configuration).
+
+### Changed
+
+- Pack and NPC registration order is now deterministic across machines - co-op peers agree on it.
+- Contact unlock and map marker are unchanged by default but can be opted out per NPC.
+
 ## [1.1.0] - 2026-07-08
 
 ### Fixed

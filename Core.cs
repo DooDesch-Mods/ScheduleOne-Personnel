@@ -3,7 +3,7 @@ using Personnel.Content;
 using Personnel.Registration;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(Personnel.Core), "Personnel", "1.0.0", "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
+[assembly: MelonInfo(typeof(Personnel.Core), "Personnel", "2.0.0", "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 [assembly: MelonOptionalDependencies("ModManager&PhoneApp")]
 
@@ -29,8 +29,86 @@ namespace Personnel
 
             int packDefs = NpcRegistry.LoadPacks();
 
-            Log.Msg($"Personnel {Info.Version} - {packDefs} NPC def(s) from packs ({NpcRegistry.AllDefs.Count} total).");
+            if (Preferences.EnableAutoRegister)
+                Spawn.DynamicNpcTypeFactory.EmitAutoRegisteredTypes(NpcRegistry.AllDefs);
+
+            LogRosterSummary(packDefs);
             Log.Msg($"Drop packs in: {PackLoader.PacksRoot}");
+        }
+
+#if DEBUG
+        public override void OnSceneWasInitialized(int buildIndex, string sceneName)
+        {
+            if (sceneName == "Main")
+                MelonCoroutines.Start(DiagnoseAfterLoad());
+        }
+
+        // Dev-only probe: proves whether S1API's discovery sees the emitted types and whether their
+        // instances made it into NPC.All (world side), ~15s after the main scene comes up.
+        private static System.Collections.IEnumerator DiagnoseAfterLoad()
+        {
+            yield return new UnityEngine.WaitForSeconds(15f);
+            try
+            {
+                var s1apiAsm = typeof(S1API.Entities.NPC).Assembly;
+                var utils = s1apiAsm.GetType("S1API.Internal.Utils.ReflectionUtils");
+                var m = utils?.GetMethod("GetDerivedClasses",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                var generic = m?.MakeGenericMethod(typeof(S1API.Entities.NPC));
+                if (generic?.Invoke(null, null) is System.Collections.Generic.List<System.Type> discovered)
+                {
+                    int emitted = 0;
+                    foreach (var t in discovered)
+                        if (t?.Assembly?.IsDynamic == true) emitted++;
+                    Log.Msg($"[diag] S1API discovery sees {discovered.Count} NPC type(s), {emitted} from the dynamic assembly.");
+                }
+                else
+                {
+                    Log.Msg("[diag] could not invoke S1API ReflectionUtils.GetDerivedClasses.");
+                }
+
+                var all = S1API.Entities.NPC.All;
+                Log.Msg($"[diag] NPC.All has {all.Count} wrapper(s):");
+                foreach (var npc in all)
+                {
+                    string type = npc?.GetType().FullName ?? "<null>";
+                    string id = "?";
+                    try { id = npc?.ID ?? "?"; } catch { }
+                    bool dyn = npc?.GetType().Assembly?.IsDynamic == true;
+                    string world = "no-go";
+                    try
+                    {
+                        var go = npc?.gameObject;
+                        if (go != null)
+                            world = $"go='{go.name}' active={go.activeInHierarchy} pos={npc.Position}";
+                    }
+                    catch (System.Exception e) { world = "go-err:" + e.Message; }
+                    Log.Msg($"[diag]   {id} ({type}){(dyn ? " [emitted]" : "")} physical={npc?.IsPhysical} {world}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Log.Warning($"[diag] probe failed: {ex}");
+            }
+        }
+#endif
+
+        private static void LogRosterSummary(int packDefs)
+        {
+            int physical = 0, contacts = 0, customers = 0, dealers = 0, scheduled = 0, auto = 0;
+            foreach (var def in NpcRegistry.AllDefs)
+            {
+                bool hasSchedule = def.Schedule != null && def.Schedule.Count > 0;
+                if (def.Spawn?.Physical ?? hasSchedule) physical++; else contacts++;
+                string role = API.ResolveRole(def);
+                if (role == "customer") customers++;
+                else if (role == "dealer") dealers++;
+                if (hasSchedule) scheduled++;
+                if (def.Spawn?.Auto == true) auto++;
+            }
+            Log.Msg($"Personnel {Instance.Info.Version} - {packDefs} NPC def(s) from packs ({NpcRegistry.AllDefs.Count} total): " +
+                    $"{physical} physical / {contacts} contact-only, {customers} customer(s), {dealers} dealer(s), " +
+                    $"{scheduled} with schedules, {auto} auto-registered.");
         }
     }
 }

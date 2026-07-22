@@ -81,26 +81,178 @@ namespace Personnel
         {
             if (builder == null || def == null) return;
             SplitName(def.DisplayName, out string first, out string last);
-            builder.WithIdentity(def.Id, first, last);
-            builder.WithAppearanceDefaults(ab => AvatarSettingsFactory.ApplyToDefaults(ab, def));
+            builder.WithIdentity(def.SaveId ?? def.Id, first, last);
+            builder.WithAppearanceDefaults(ab =>
+            {
+                AvatarSettingsFactory.ApplyToDefaults(ab, def);
+                ApplyImpostorIfSupported(ab, def);
+            });
 
-            // Make the NPC a real phone contact. Vanilla ContactsDetailPanel shows "???" and hides the
-            // map button for any NPC whose relationship is locked; unlocking it once (respected against
-            // save data by S1API) makes the real name render. This is a cosmetic contact only - no
-            // economy role - which also keeps clear of the vanilla NRE that triggers when a role-less NPC
-            // is left in the "mutually known but locked" state.
-            builder.WithRelationshipDefaults(r => r.SetUnlocked(true));
+            // Phone-contact presentation. Unlocking the relationship makes ContactsDetailPanel render the
+            // real name instead of "???" (respected against save data by S1API); it also keeps clear of the
+            // vanilla NRE that triggers when a role-less NPC is left "mutually known but locked".
+            // contact.visible=false skips the unlock (experimental).
+            bool unlocked = def.Relationships?.Unlocked ?? def.Contact?.Visible ?? true;
+            builder.WithRelationshipDefaults(r =>
+            {
+                r.SetUnlocked(unlocked);
+                var rel = def.Relationships;
+                if (rel == null) return;
+                if (rel.Delta.HasValue) r.WithDelta(rel.Delta.Value);
+                if (!string.IsNullOrWhiteSpace(rel.UnlockType))
+                {
+                    if (Util.Parse.TryParseEnum(rel.UnlockType, out NPCRelationship.UnlockType ut)) r.SetUnlockType(ut);
+                    else Core.Log?.Warning($"'{def.Id}': unknown relationships.unlockType '{rel.UnlockType}' - ignored.");
+                }
+                if (rel.Connections != null && rel.Connections.Count > 0)
+                    r.WithConnectionsById(rel.Connections);
+            });
 
-            // Optional economy role, opt-in per pack via behavior.conversation. Default ("none"/null)
-            // stays a plain cosmetic contact - not every NPC should be a customer.
-            string role = def.Behavior?.Conversation;
-            if (string.Equals(role, "customer", StringComparison.OrdinalIgnoreCase))
-                builder.WithCustomerDefaults(_ => { });
-            else if (string.Equals(role, "dealer", StringComparison.OrdinalIgnoreCase))
-                builder.WithDealerDefaults(_ => { });
+            string role = ResolveRole(def);
+            if (role == "dealer") ApplyDealer(builder, def);
+            else if (role == "customer") ApplyCustomer(builder, def);
+
+            ApplyInventory(builder, def);
+
+            var scheduleSpecs = Spawn.ScheduleSpecFactory.Build(def);
+            if (scheduleSpecs.Count > 0)
+                builder.WithSchedule(scheduleSpecs);
 
             if (def.Spawn?.Position != null)
-                builder.WithSpawnPosition(def.Spawn.Position.Value, Quaternion.identity);
+            {
+                Quaternion rot = def.Spawn.RotationY.HasValue
+                    ? Quaternion.Euler(0f, def.Spawn.RotationY.Value, 0f)
+                    : Quaternion.identity;
+                builder.WithSpawnPosition(def.Spawn.Position.Value, rot);
+            }
+        }
+
+        /// <summary>
+        /// Effective economy role of a definition: a dealer{} block wins over a customer{} block, which wins
+        /// over the legacy behavior.conversation shorthand. Returns "dealer", "customer" or null.
+        /// </summary>
+        internal static string ResolveRole(NpcDef def)
+        {
+            if (def == null) return null;
+            string legacy = def.Behavior?.Conversation;
+            bool legacyDealer = string.Equals(legacy, "dealer", StringComparison.OrdinalIgnoreCase);
+            bool legacyCustomer = string.Equals(legacy, "customer", StringComparison.OrdinalIgnoreCase);
+
+            if (def.Dealer != null)
+            {
+                if (def.Customer != null || legacyCustomer)
+                    Core.Log?.Warning($"'{def.Id}': has both dealer and customer data - dealer wins (an NPC can only be one).");
+                return "dealer";
+            }
+            if (def.Customer != null)
+            {
+                if (legacyDealer)
+                    Core.Log?.Warning($"'{def.Id}': customer{{}} block contradicts behavior.conversation=\"dealer\" - customer wins.");
+                return "customer";
+            }
+            if (legacyDealer) return "dealer";
+            if (legacyCustomer) return "customer";
+            return null;
+        }
+
+        private static void ApplyCustomer(NPCPrefabBuilder builder, NpcDef def)
+        {
+            builder.WithCustomerDefaults(c =>
+            {
+                var cu = def.Customer;
+                if (cu == null) return;
+                if (cu.Spending != null) c.WithSpending(cu.Spending.Min, cu.Spending.Max);
+                if (cu.OrdersPerWeek != null) c.WithOrdersPerWeek((int)cu.OrdersPerWeek.Min, (int)cu.OrdersPerWeek.Max);
+                if (!string.IsNullOrWhiteSpace(cu.PreferredOrderDay)) c.WithPreferredOrderDay(cu.PreferredOrderDay);
+                if (cu.OrderTime.HasValue) c.WithOrderTime(cu.OrderTime.Value);
+                if (!string.IsNullOrWhiteSpace(cu.Standards)) c.WithStandards(cu.Standards);
+                if (cu.AllowDirectApproach.HasValue) c.AllowDirectApproach(cu.AllowDirectApproach.Value);
+                if (cu.GuaranteeFirstSample.HasValue) c.GuaranteeFirstSample(cu.GuaranteeFirstSample.Value);
+                if (cu.MutualRelationRequirement != null)
+                    c.WithMutualRelationRequirement(cu.MutualRelationRequirement.Min, cu.MutualRelationRequirement.Max);
+                if (cu.CallPoliceChance.HasValue) c.WithCallPoliceChance(cu.CallPoliceChance.Value);
+                if (cu.DependenceBase.HasValue) c.WithDependence(cu.DependenceBase.Value, cu.DependenceMultiplier ?? 1f);
+                if (cu.Affinities != null && cu.Affinities.Count > 0)
+                {
+                    var entries = new List<(string, float)>();
+                    foreach (var kv in cu.Affinities) entries.Add((kv.Key, kv.Value));
+                    c.WithAffinities(entries);
+                }
+                if (cu.PreferredProperties != null && cu.PreferredProperties.Count > 0)
+                    c.WithPreferredPropertiesById(cu.PreferredProperties.ToArray());
+            });
+        }
+
+        private static void ApplyDealer(NPCPrefabBuilder builder, NpcDef def)
+        {
+            // The dealer ROLE comes from PersonnelNpc.IsDealer (base-prefab choice); dealer DATA is only
+            // registered when the block sets something. An empty registration would make S1API resolve its
+            // default home name ("Home") and warn about it for every such NPC.
+            var de = def.Dealer;
+            bool hasData = de != null && (de.Type != null || de.Cut.HasValue || de.SigningFee.HasValue ||
+                de.Home != null || de.CompletedDealsVariable != null ||
+                de.AllowInsufficientQuality.HasValue || de.AllowExcessQuality.HasValue);
+            if (!hasData) return;
+
+            builder.WithDealerDefaults(d =>
+            {
+                if (de == null) return;
+                if (!string.IsNullOrWhiteSpace(de.Type))
+                {
+                    // "player"/"cartel" are friendlier than the enum names; both spellings are accepted.
+                    string type = de.Type;
+                    if (string.Equals(type, "player", StringComparison.OrdinalIgnoreCase)) type = "PlayerDealer";
+                    else if (string.Equals(type, "cartel", StringComparison.OrdinalIgnoreCase)) type = "CartelDealer";
+                    if (Util.Parse.TryParseEnum(type, out S1API.Economy.DealerType dt)) d.WithDealerType(dt);
+                    else Core.Log?.Warning($"'{def.Id}': unknown dealer.type '{de.Type}' - ignored.");
+                }
+                if (de.Cut.HasValue) d.WithCut(de.Cut.Value);
+                if (de.SigningFee.HasValue) d.WithSigningFee(de.SigningFee.Value);
+                if (!string.IsNullOrWhiteSpace(de.Home)) d.WithHomeName(de.Home);
+                if (!string.IsNullOrWhiteSpace(de.CompletedDealsVariable)) d.WithCompletedDealsVariable(de.CompletedDealsVariable);
+                if (de.AllowInsufficientQuality.HasValue) d.AllowInsufficientQuality(de.AllowInsufficientQuality.Value);
+                if (de.AllowExcessQuality.HasValue) d.AllowExcessQuality(de.AllowExcessQuality.Value);
+            });
+        }
+
+        // Vanilla enables the >50m billboard impostor unconditionally, and runtime-built AvatarSettings
+        // carry no impostor texture - without one, distant custom NPCs render an empty billboard. The
+        // impostor builder API only exists in newer S1API builds, so this is best-effort via reflection:
+        // present -> pick a deterministic impostor (same on all co-op peers), absent -> silently skip.
+        private static System.Reflection.MethodInfo _randomImpostor;
+        private static bool _randomImpostorProbed;
+
+        private static void ApplyImpostorIfSupported(NPCPrefabBuilder.AvatarDefaultsBuilder ab, NpcDef def)
+        {
+            try
+            {
+                if (!_randomImpostorProbed)
+                {
+                    _randomImpostorProbed = true;
+                    _randomImpostor = typeof(NPCPrefabBuilder.AvatarDefaultsBuilder)
+                        .GetMethod("WithRandomImpostor", new[] { typeof(int), typeof(string[]) });
+                }
+                _randomImpostor?.Invoke(ab, new object[] { Util.Parse.StableHash(def.Id), Array.Empty<string>() });
+            }
+            catch (Exception ex)
+            {
+                Core.Log?.Warning($"'{def.Id}': setting an impostor failed ({ex.Message}) - distant billboard may be blank.");
+            }
+        }
+
+        private static void ApplyInventory(NPCPrefabBuilder builder, NpcDef def)
+        {
+            var inv = def.Inventory;
+            if (inv == null) return;
+            builder.WithInventoryDefaults(i =>
+            {
+                if (inv.Cash != null) i.WithRandomCash((int)inv.Cash.Min, (int)inv.Cash.Max);
+                if (inv.Items != null)
+                    foreach (var item in inv.Items)
+                        for (int n = 0; n < item.Quantity; n++)
+                            i.WithStartupItem(item.Id);
+                if (inv.ClearEachNight.HasValue) i.WithClearInventoryEachNight(inv.ClearEachNight.Value);
+            });
         }
 
         /// <summary>

@@ -13,6 +13,7 @@ namespace Personnel.Config
 
         private static MelonPreferences_Category _category;
         private static MelonPreferences_Entry<bool> _loadExamplePack;
+        private static MelonPreferences_Entry<bool> _enableAutoRegister;
 
         internal static void Initialize()
         {
@@ -24,8 +25,14 @@ namespace Personnel.Config
                 "OFF by default. When ON, Personnel drops a small example pack into " +
                 "UserData/Personnel/Packs/Examples on startup (if not already there) so you get a working " +
                 "manifest template to copy for your own pack. Requires a game restart.");
+
+            _enableAutoRegister = _category.CreateEntry("EnableAutoRegister", true, "Auto-register pack NPCs",
+                "ON by default. Packs that opt in (\"autoRegister\": true, or per-NPC \"spawn\": { \"auto\": true }) " +
+                "get their NPCs registered as real world NPCs without any consumer mod. Turn OFF as a kill switch " +
+                "if a pack misbehaves. Requires a game restart.");
         }
 
         internal static bool LoadExamplePack => _loadExamplePack?.Value ?? false;
+        internal static bool EnableAutoRegister => _enableAutoRegister?.Value ?? true;
     }
 }

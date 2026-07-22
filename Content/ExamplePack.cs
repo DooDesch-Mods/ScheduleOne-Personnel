@@ -78,6 +78,39 @@ namespace Personnel.Content
           ""weight"": 10, ""maxAlive"": 1, ""hostile"": true
         }
       }
+    },
+    {
+      ""name"": ""Errand Eddie"",
+      ""appearance"": {
+        ""gender"": 0.0,
+        ""height"": 1.0,
+        ""weight"": 0.5,
+        ""skinColor"": ""#C09070"",
+        ""hairColor"": ""#3A2A1A""
+      },
+      ""spawn"": {
+        ""x"": -66.4, ""y"": -2.9, ""z"": 86.1,
+        ""rotationY"": 145.0,
+        ""region"": ""Westville"",
+        ""physical"": true,
+        ""auto"": false
+      },
+      ""contact"": { ""visible"": true, ""mapMarker"": true },
+      ""relationships"": { ""delta"": 1.5, ""unlockType"": ""Recommendation"" },
+      ""customer"": {
+        ""spending"": { ""min"": 300, ""max"": 900 },
+        ""ordersPerWeek"": { ""min"": 1, ""max"": 3 },
+        ""preferredOrderDay"": ""Friday"",
+        ""orderTime"": ""19:30"",
+        ""standards"": ""Moderate"",
+        ""affinities"": { ""marijuana"": 0.6 }
+      },
+      ""inventory"": { ""cash"": { ""min"": 20, ""max"": 120 }, ""clearEachNight"": true },
+      ""schedule"": [
+        { ""type"": ""walkTo"", ""time"": ""07:30"", ""position"": [-70.1, -2.9, 80.0] },
+        { ""type"": ""stayInBuilding"", ""time"": ""09:00"", ""duration"": 240, ""building"": ""Thrifty Threads"" },
+        { ""type"": ""walkTo"", ""time"": ""14:00"", ""position"": [-66.4, -2.9, 86.1] }
+      ]
     }
   ]
 }
