@@ -1,6 +1,6 @@
 # Personnel - Custom NPCs for Schedule I
 
-> 🛟 **Need help or found a bug?** Get support at [support.doodesch.de](https://support.doodesch.de).
+> 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
 > The NPC framework for Schedule I. Personnel lets anyone ship custom NPCs as simple pack folders -
 > designed in [Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify) or written by hand -
@@ -22,7 +22,7 @@ example pack) and consumer mods can bring those NPCs into the world.
 Personnel 1.0.0 is an early release. The core paths - pack loading, appearance realisation and S1API
 spawning - are verified in-game, but the mod has not yet seen extended real-world testing across a wide
 range of packs, saves and multiplayer sessions. Expect it to mature over the coming releases; if something
-misbehaves, a report at [support.doodesch.de](https://support.doodesch.de) directly shapes the next version.
+misbehaves, a report at [support.doodesch.de/personnel](https://support.doodesch.de/personnel) directly shapes the next version.
 
 ## Documentation
 
