@@ -1,6 +1,6 @@
 # Personnel - Custom NPCs for Schedule I
 
-> 🛟 **Need help or found a bug?** Get support at [support.doodesch.de](https://support.doodesch.de).
+> 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
 > **The NPC framework for Schedule I.** NPC packs are plain folders (designed in-game with Personify
 > or written by hand); mods spawn them as real S1API NPCs - networked, saved, walking the world as if
@@ -22,7 +22,7 @@
 
 **Early release:** the core paths are verified in-game, but 1.0.0 has not yet seen extended real-world
 testing - it will mature over the coming releases. Reports at
-[support.doodesch.de](https://support.doodesch.de) directly shape the next version.
+[support.doodesch.de/personnel](https://support.doodesch.de/personnel) directly shape the next version.
 
 ## Requirements
 
