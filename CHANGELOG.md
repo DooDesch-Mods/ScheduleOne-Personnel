@@ -48,6 +48,11 @@ what it does all day, its economy role - and Personnel spawns it as a real world
 
 - Custom NPCs now show their real name in the phone Contacts app (previously "???") and can be found
   on the map. Personnel unlocks each spawned NPC's contact and gives it a map marker.
+- Clothing no longer carries over from one spawned NPC to the next. The game clears only six of its
+  eight avatar layer slots, so an NPC with more layers than that leaves a garment bound to the material
+  for whoever is applied after it.
+- A definition asking for more than eight body layers no longer loses one at random. The surplus is
+  dropped deliberately, clothing first, and named in the log.
 
 ### Added
 
