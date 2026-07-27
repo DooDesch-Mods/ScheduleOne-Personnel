@@ -51,7 +51,6 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 | Schedule I | IL2CPP (current Steam public build) |
 | MelonLoader | `0.7.3+` |
 | S1API | [ifBars/S1API_Forked](https://thunderstore.io/c/schedule-i/p/ifBars/S1API_Forked/) |
-| Mod Manager & Phone App | [Nexus mods/397](https://www.nexusmods.com/schedule1/mods/397) - optional, for the in-game settings UI |
 
 ## Installation
 
@@ -142,7 +141,7 @@ consumer lives in the repo as `PersonOfInterest`.
 
 ## Configuration
 
-Settings live in the **Mod Manager & Phone App** UI in-game, or in `UserData/MelonPreferences.cfg`
+Settings live in `UserData/MelonPreferences.cfg`
 under `Personnel_01_Main`.
 
 | Setting | Default | What it does |
@@ -169,7 +168,6 @@ Full NPCs ride entirely on S1API's prefab/networking machinery via `PersonnelNpc
 
 - **DooDesch** - mod author.
 - **[ifBars/S1API](https://github.com/ifBars/S1API)** - the modding API this is built on.
-- **Prowiler** - Mod Manager & Phone App (in-game settings UI).
 
 ## License
 

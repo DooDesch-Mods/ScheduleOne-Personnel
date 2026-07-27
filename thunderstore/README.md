@@ -29,7 +29,6 @@
 
 - **Schedule I** (IL2CPP) with **MelonLoader 0.7.3+**.
 - **S1API** (pulled in as a dependency).
-- Optional: **Mod Manager & Phone App** for the in-game settings UI.
 
 ## Using it
 
@@ -38,8 +37,7 @@ Install Personnel plus any NPC pack or NPC mod that depends on it. Packs live in
 many were auto-registered. In co-op, everyone needs the same packs installed - the same rule as for
 mods.
 
-Want a template? Set **`LoadExamplePack`** to `true` (Mod Manager & Phone App UI or
-`UserData/MelonPreferences.cfg` under `Personnel_01_Main`) and restart - a small example pack is
+Want a template? Set **`LoadExamplePack`** to `true` (`UserData/MelonPreferences.cfg` under `Personnel_01_Main`) and restart - a small example pack is
 dropped into `Packs/Examples`, including an NPC with a spawn point and daily schedule to copy.
 
 ## For pack authors and developers
@@ -65,7 +63,7 @@ Full pack format, API reference and examples on
 - `LoadExamplePack` (default `false`) - drop the bundled example pack on disk as a template.
 - `EnableAutoRegister` (default `true`) - kill switch for pack auto-registration.
 
-Editable in the Mod Manager & Phone App UI or `UserData/MelonPreferences.cfg`.
+Editable in `UserData/MelonPreferences.cfg`.
 
 ## License
 
