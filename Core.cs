@@ -5,7 +5,6 @@ using MelonLoader;
 
 [assembly: MelonInfo(typeof(Personnel.Core), "Personnel", "2.0.0", "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
 [assembly: MelonGame("TVGS", "Schedule I")]
-[assembly: MelonOptionalDependencies("ModManager&PhoneApp")]
 
 namespace Personnel
 {
