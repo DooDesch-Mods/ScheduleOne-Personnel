@@ -53,8 +53,8 @@ namespace Personnel.Appearance
 
             // Only eight body layers ever reach the material; a ninth is written to a slot that does not exist
             // and disappears without a warning. Drop the surplus deliberately and log what went.
-            foreach (string p in AvatarLayerSlots.TrimToBudget(bodyList, BudgetPriority))
-                Core.Log?.Warning("[appearance] '" + def.Id + "' exceeds the body layer budget, dropped " + p);
+            foreach (var d in AvatarLayerSlots.TrimToBudget(bodyList, BudgetPriority))
+                Core.Log?.Warning("[appearance] '" + def.Id + "' exceeds the body layer budget, dropped " + d.layerPath);
 
             s.FaceLayerSettings = faceList;
             s.BodyLayerSettings = bodyList;
