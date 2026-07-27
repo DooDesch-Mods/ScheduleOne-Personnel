@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using DooDesch.AvatarKit;
 using Il2CppScheduleOne.AvatarFramework;
 using Personnel.Model;
 using Personnel.Registration;
@@ -49,6 +51,11 @@ namespace Personnel.Appearance
             AddLayers(def, a.BodyLayers, bodyList, face: false);
             AddAccessories(a.Accessories, accList);
 
+            // Only eight body layers ever reach the material; a ninth is written to a slot that does not exist
+            // and disappears without a warning. Drop the surplus deliberately and log what went.
+            foreach (string p in AvatarLayerSlots.TrimToBudget(bodyList, BudgetPriority))
+                Core.Log?.Warning("[appearance] '" + def.Id + "' exceeds the body layer budget, dropped " + p);
+
             s.FaceLayerSettings = faceList;
             s.BodyLayerSettings = bodyList;
             s.AccessorySettings = accList;
@@ -72,6 +79,16 @@ namespace Personnel.Appearance
         }
 
         // Accessories are meshes attached by asset path (custom accessory meshes are not supported).
+        // Which body layer gives up its slot first when a definition asks for more than the game can render.
+        // Custom art is the reason the definition exists, so it outranks stock tattoos, and both outrank clothing.
+        private static int BudgetPriority(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return 0;
+            if (path.IndexOf("personnel", StringComparison.OrdinalIgnoreCase) >= 0) return 3;
+            if (path.IndexOf("/Tattoos/", StringComparison.OrdinalIgnoreCase) >= 0) return 2;
+            return 1;
+        }
+
         private static void AddAccessories(List<NpcLayer> layers,
             Il2CppSystem.Collections.Generic.List<AvatarSettings.AccessorySetting> dst)
         {

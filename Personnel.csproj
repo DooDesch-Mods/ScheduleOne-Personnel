@@ -21,6 +21,10 @@
   <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/AvatarDistortion.props')" />
   <Import Project="$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/AvatarDistortion.props')" />
 
+  <!-- Shared avatar layer-slot helper: vanilla clears only 6 of the body material's 8 layer slots - linked source. -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/AvatarLayers.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/AvatarLayers.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/AvatarLayers.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/AvatarLayers.props')" />
+
   <!--
     Personnel - MelonLoader IL2CPP NPC-library mod for Schedule I (provider half of the Personnel/Personify pair,
     modelled on Inkorporated/Inkubator). Loads user "NPC packs" (manifest.json + optional PNG layers) from

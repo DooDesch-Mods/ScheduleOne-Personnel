@@ -49,7 +49,7 @@ namespace Personnel
             if (avatar == null || def == null) return false;
             AvatarSettings s = BuildAvatarSettings(def);
             if (s == null) return false;
-            avatar.LoadAvatarSettings(s);
+            AvatarLayerSlots.LoadAndClean(avatar, s);
             return true;
         }
 
