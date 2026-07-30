@@ -41,6 +41,9 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 - **NPC packs are plain folders** - a `manifest.json` plus optional PNGs under
   `UserData/Personnel/Packs/<PackName>/`. Design them live in-game with
   [Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify).
+- **Coordinates from the console.** The game shows none, so `personnel pos 07:30` gives you a
+  finished `walkTo` action for the spot you are standing on, `personnel spawn` a full spawn block,
+  and `personnel route` collects a whole day's route. Everything lands on your clipboard.
 - **Stable, save-safe ids** with rename escape hatches (`packId`, `saveId`).
 - **Bundled example pack** (off by default) drops a working manifest template to copy.
 

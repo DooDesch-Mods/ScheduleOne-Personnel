@@ -43,9 +43,9 @@
     <RootNamespace>Personnel</RootNamespace>
     <AssemblyName>Personnel</AssemblyName>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
+    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
     <NoWarn>$(NoWarn);MSB3277;MSB3245</NoWarn>
 
     <WorkspaceLibPath Condition="'$(WorkspaceLibPath)' == ''">$(MSBuildThisFileDirectory)../Workspace/lib</WorkspaceLibPath>
@@ -117,6 +117,11 @@
     <!-- SkinnedMeshRenderer (bone-distortion body-mesh hide, via AvatarDistortion.props). -->
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>$(GameManagedPath)/UnityEngine.AnimationModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- GUIUtility.systemCopyBuffer - the authoring console copies its JSON straight to the clipboard. -->
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(GameManagedPath)/UnityEngine.IMGUIModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

@@ -6,7 +6,7 @@
 > customer/dealer economy, relationships, contacts - and Personnel spawns them as real S1API NPCs:
 > networked, saved, walking their routines. Since 2.0, no mod code needed at all.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
@@ -23,6 +23,9 @@
   ones that should walk the world are physical. Big packs stay fast, also on Steam Deck.
 - Deep appearance: body, skin, hair, face, eyes, eyebrows, clothing, accessories and custom PNG
   layers (e.g. tattoos). Design packs live in-game with **Personify**.
+- **Coordinates from the console.** The game shows none, so `personnel pos 07:30` hands you a
+  finished `walkTo` action for the spot you are standing on, `personnel spawn` a full spawn block,
+  and `personnel route` collects a whole day's route. Everything lands on your clipboard.
 - Stable, save-safe NPC ids with rename escape hatches (`packId`, `saveId`).
 
 ## Requirements

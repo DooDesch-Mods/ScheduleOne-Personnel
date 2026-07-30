@@ -3,7 +3,7 @@ using Personnel.Content;
 using Personnel.Registration;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(Personnel.Core), "Personnel", "2.0.0", "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
+[assembly: MelonInfo(typeof(Personnel.Core), "Personnel", "2.1.0", "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace Personnel
@@ -11,7 +11,8 @@ namespace Personnel
     /// <summary>
     /// MelonLoader entry point for Personnel (the NPC-library provider). On init it loads user NPC packs (managed
     /// data only); custom avatar layers are realised lazily the first time a definition's appearance is built.
-    /// Other mods consume the definitions via <see cref="API"/>. This mod patches nothing - it is a pure library.
+    /// Other mods consume the definitions via <see cref="API"/>. The only patch it applies is the dev-console
+    /// bridge for pack authors (see <see cref="Tools.PersonnelConsole"/>); nothing in the game loop is touched.
     /// </summary>
     public sealed class Core : MelonMod
     {
@@ -31,8 +32,14 @@ namespace Personnel
             if (Preferences.EnableAutoRegister)
                 Spawn.DynamicNpcTypeFactory.EmitAutoRegisteredTypes(NpcRegistry.AllDefs);
 
+            // Authoring commands ("personnel pos" and friends). A failed patch costs the console bridge, not
+            // the library, so the roster still loads either way.
+            try { HarmonyInstance.PatchAll(); }
+            catch (System.Exception e) { Log.Warning("Console commands unavailable: " + e.Message); }
+
             LogRosterSummary(packDefs);
             Log.Msg($"Drop packs in: {PackLoader.PacksRoot}");
+            Log.Msg("Writing a schedule? Type 'personnel help' in the dev console to grab coordinates.");
         }
 
 #if DEBUG

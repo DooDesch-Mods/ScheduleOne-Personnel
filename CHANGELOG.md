@@ -3,6 +3,25 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-07-30
+
+Writing a schedule meant guessing coordinates, because the game shows none anywhere. Now the console
+hands them to you.
+
+### Added
+
+- Dev-console commands for pack authors (console has to be enabled in Settings):
+  - `personnel pos [HH:MM]` - the spot you are standing on, as `[x, y, z]` or as a finished `walkTo`
+    action for that time.
+  - `personnel spawn` - the same spot as a `spawn` block, with `rotationY` and `region` filled in.
+  - `personnel route HH:MM` - collects a step per stop in `UserData/Personnel/route.json`;
+    `personnel route show` prints the block ready to paste into `"schedule": [ ... ]`, `clear`
+    starts over.
+  - `personnel npcs [filter]` - loaded definitions, and where the physical ones are right now.
+  - `personnel help` - the list.
+- Results are copied to the clipboard and written to the MelonLoader log, with an in-game
+  notification confirming the command ran.
+
 ## [2.0.0] - 2026-07-22
 
 NPC mods without code: a pack manifest can now describe everything an NPC needs - where it spawns,
