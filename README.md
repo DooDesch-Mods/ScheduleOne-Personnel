@@ -7,7 +7,7 @@
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world
 > as if the mod author had built them in code. Built on [S1API](https://github.com/ifBars/S1API).
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.1-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
