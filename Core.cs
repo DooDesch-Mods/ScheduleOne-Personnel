@@ -3,7 +3,7 @@ using Personnel.Content;
 using Personnel.Registration;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(Personnel.Core), "Personnel", "2.1.1", "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
+[assembly: MelonInfo(typeof(Personnel.Core), "Personnel", DooDesch.ModVersion.Current, "DooDesch", "https://github.com/DooDesch-Mods/ScheduleOne-Personnel")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace Personnel

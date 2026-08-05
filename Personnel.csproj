@@ -14,6 +14,12 @@
     <Compile Remove="Workspace/**/*.cs" />
   </ItemGroup>
 
+  <!-- Generates DooDesch.ModVersion.Current from this project's own version property, so MelonInfo carries the
+       released version and cannot drift out of it. MUST come after the Workspace Remove so CI keeps the file. -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/ModVersion.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/ModVersion.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/ModVersion.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/ModVersion.props')" />
+
+
   <!-- Shared avatar bone-distortion helper (namespace DooDesch.AvatarKit), linked source. Imported AFTER the
        Workspace glob-removal above so the one linked file it adds survives it (in CI the Workspace subfolder path
        Workspace/avatar/... would otherwise be stripped by the removal). Dual-path so it resolves both locally
