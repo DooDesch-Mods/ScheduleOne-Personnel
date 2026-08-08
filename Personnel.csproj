@@ -30,6 +30,10 @@
   <!-- Shared avatar layer-slot helper: vanilla clears only 6 of the body material's 8 layer slots - linked source. -->
   <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/AvatarLayers.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/AvatarLayers.props')" />
   <Import Project="$(MSBuildThisFileDirectory)Workspace/build/AvatarLayers.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/AvatarLayers.props')" />
+  <!-- Where a build is allowed to install: the test copy by default, and never a real game installation
+       without saying so out loud. See Workspace/build/Deploy.props. -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Deploy.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Deploy.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/Deploy.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/Deploy.props')" />
 
   <!--
     Personnel - MelonLoader IL2CPP NPC-library mod for Schedule I (provider half of the Personnel/Personify pair,
@@ -55,7 +59,6 @@
     <NoWarn>$(NoWarn);MSB3277;MSB3245</NoWarn>
 
     <WorkspaceLibPath Condition="'$(WorkspaceLibPath)' == ''">$(MSBuildThisFileDirectory)../Workspace/lib</WorkspaceLibPath>
-    <ModsDirectory Condition="'$(ModsDirectory)' == ''">D:\Launcher\SteamLibrary\steamapps\common\Schedule I\Mods</ModsDirectory>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
