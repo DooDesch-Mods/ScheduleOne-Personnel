@@ -116,7 +116,7 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
   game's baseline. Layers take either a `path` (existing game layer) or a `file` (pack-relative PNG).
 - On top of `appearance` there are `spawn`, `schedule`, `customer`, `dealer`, `inventory`,
   `relationships` and `contact` blocks - the
-  [Pack Format wiki page](https://docs.doodesch.de/mods/personnel/)
+  [Pack Format documentation page](https://docs.doodesch.de/mods/personnel/guides/pack-format/)
   documents every field.
 - Enable the example pack (Configuration below) for a complete, working template.
 
