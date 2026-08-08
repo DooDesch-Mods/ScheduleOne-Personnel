@@ -19,7 +19,7 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 
 ## Documentation
 
-- 📖 **[Wiki](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/wiki)** - the full guide: pack
+- 📖 **[Documentation](https://docs.doodesch.de/mods/personnel/)** - the full guide: pack
   format and id rules, the API (spawning real S1API NPCs), custom PNG layer authoring, multiplayer,
   troubleshooting.
 - 🧩 **[Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify)** - the in-game editor that
@@ -116,7 +116,7 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
   game's baseline. Layers take either a `path` (existing game layer) or a `file` (pack-relative PNG).
 - On top of `appearance` there are `spawn`, `schedule`, `customer`, `dealer`, `inventory`,
   `relationships` and `contact` blocks - the
-  [Pack Format wiki page](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/wiki/Pack-Format)
+  [Pack Format documentation page](https://docs.doodesch.de/mods/personnel/guides/pack-format/)
   documents every field.
 - Enable the example pack (Configuration below) for a complete, working template.
 
