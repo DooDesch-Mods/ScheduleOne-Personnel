@@ -3,6 +3,18 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-08-13
+
+### Fixed
+
+- An NPC whose pack sets only a skin colour gets matching eyelids. They fell back to the default tan, which
+  read as pale lids on any dark skin.
+- Face layers are placed the way the game reads them: the mouth first, the facial hair second. A pack that
+  listed them in another order had a detail layer drawn in the hair colour.
+- Face layers past the fifth are dropped and named in the log. They used to overwrite the facial hair instead.
+- Body layers past the eighth are dropped on the S1API prefab path too. Only the runtime path had that
+  ceiling, so a prefab NPC lost a garment with nothing said.
+
 ## [2.1.1] - 2026-08-01
 
 ### Changed

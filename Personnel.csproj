@@ -53,7 +53,7 @@
     <RootNamespace>Personnel</RootNamespace>
     <AssemblyName>Personnel</AssemblyName>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <Version>2.1.1</Version>
+    <Version>2.2.0</Version>
     <AssemblyVersion>2.1.1.0</AssemblyVersion>
     <FileVersion>2.1.1.0</FileVersion>
     <NoWarn>$(NoWarn);MSB3277;MSB3245</NoWarn>

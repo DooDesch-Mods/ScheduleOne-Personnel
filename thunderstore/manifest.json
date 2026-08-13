@@ -1,6 +1,6 @@
 {
   "name": "Personnel",
-  "version_number": "2.1.1",
+  "version_number": "2.2.0",
   "website_url": "https://github.com/DooDesch-Mods/ScheduleOne-Personnel",
   "description": "The NPC framework for Schedule I. NPC packs as plain folders - spawn points, daily schedules, customer/dealer economy, contacts - spawned as real networked, saved NPCs. No code needed.",
   "dependencies": [
