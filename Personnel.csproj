@@ -59,7 +59,6 @@
          pinning them by hand is how they drift out of Version.
          Rules: Workspace/docs/RELEASE-PROCESS.md, section "Versioning". -->
     <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
->>>>>>> origin/main
     <NoWarn>$(NoWarn);MSB3277;MSB3245</NoWarn>
 
     <WorkspaceLibPath Condition="'$(WorkspaceLibPath)' == ''">$(MSBuildThisFileDirectory)../Workspace/lib</WorkspaceLibPath>
