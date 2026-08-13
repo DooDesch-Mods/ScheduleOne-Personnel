@@ -51,6 +51,13 @@ namespace Personnel.Appearance
             AddLayers(def, a.BodyLayers, bodyList, face: false);
             AddAccessories(a.Accessories, accList);
 
+            // Face layers are read by POSITION: entry 0 is the mouth, entry 1 is the facial hair and is drawn in the
+            // avatar's hair colour whatever tint it carries. A definition lists them in whatever order it likes, so
+            // they get sorted into those roles here rather than landing in them by accident.
+            AvatarLayerSlots.OrderFaceLayers(faceList);
+            foreach (var d in AvatarLayerSlots.TrimFaceToBudget(faceList, BudgetPriority))
+                Core.Log?.Warning("[appearance] '" + def.Id + "' exceeds the face layer budget, dropped " + d.layerPath);
+
             // Only eight body layers ever reach the material; a ninth is written to a slot that does not exist
             // and disappears without a warning. Drop the surplus deliberately and log what went.
             foreach (var d in AvatarLayerSlots.TrimToBudget(bodyList, BudgetPriority))
@@ -131,19 +138,73 @@ namespace Personnel.Appearance
             ab.EyeBallTint = a.EyeBallTint;
             ab.PupilDilation = a.PupilDilation;
 
-            foreach (NpcLayer l in a.FaceLayers)
+            // S1API appends face layers in call order, and the game then reads that list by position (mouth first,
+            // facial hair second, drawn in the hair colour) - so the calls have to go out in vanilla's order.
+            foreach (var (path, tint) in OrderedFaceLayers(def, a.FaceLayers))
+                ab.WithFaceLayer(path, tint);
+            // Same eight-layer ceiling as the runtime path below - a ninth body layer is written to a material slot
+            // that does not exist and is gone with no error, so the surplus gets dropped on purpose here too.
+            var body = new List<(string path, Color tint)>();
+            foreach (NpcLayer l in a.BodyLayers ?? new List<NpcLayer>())
             {
-                string p = ResolvePath(def, l, face: true);
-                if (!string.IsNullOrEmpty(p)) ab.WithFaceLayer(p, l.Tint);
-            }
-            foreach (NpcLayer l in a.BodyLayers)
-            {
+                if (l == null) continue;
                 string p = ResolvePath(def, l, face: false);
-                if (!string.IsNullOrEmpty(p)) ab.WithBodyLayer(p, l.Tint);
+                if (!string.IsNullOrEmpty(p)) body.Add((p, l.Tint));
             }
+            TrimByRank(body, AvatarLayerSlots.BodySlots, def.Id, "body");
+            foreach (var (path, tint) in body) ab.WithBodyLayer(path, tint);
+
             foreach (NpcLayer l in a.Accessories)
             {
                 if (l != null && !string.IsNullOrWhiteSpace(l.Path)) ab.WithAccessoryLayer(l.Path, l.Tint);
+            }
+        }
+
+        /// <summary>
+        /// The definition's face layers with their paths resolved, sorted into vanilla's fixed roles: mouth first,
+        /// facial hair second (an empty entry holds the slot when the NPC has neither), everything else behind them
+        /// in its original order and capped at what the face material can render.
+        /// </summary>
+        private static List<(string path, Color tint)> OrderedFaceLayers(NpcDef def, List<NpcLayer> layers)
+        {
+            var mouth = new List<(string, Color)>();
+            var hair = new List<(string, Color)>();
+            var rest = new List<(string, Color)>();
+            foreach (NpcLayer l in layers ?? new List<NpcLayer>())
+            {
+                if (l == null) continue;
+                string p = ResolvePath(def, l, face: true);
+                if (string.IsNullOrEmpty(p) || p == AvatarLayerSlots.EmptyFacePath) continue;
+                if (mouth.Count == 0 && AvatarLayerSlots.IsMouthLayer(p)) mouth.Add((p, l.Tint));
+                else if (hair.Count == 0 && AvatarLayerSlots.IsFacialHairLayer(p)) hair.Add((p, l.Tint));
+                else rest.Add((p, l.Tint));
+            }
+
+            TrimByRank(rest, AvatarLayerSlots.FreeFaceEntries, def.Id, "face");
+
+            var ordered = new List<(string, Color)>
+            {
+                mouth.Count > 0 ? mouth[0] : (AvatarLayerSlots.EmptyFacePath, Color.white),
+                hair.Count > 0 ? hair[0] : (AvatarLayerSlots.EmptyFacePath, Color.white)
+            };
+            ordered.AddRange(rest);
+            return ordered;
+        }
+
+        /// <summary>
+        /// Cut a resolved layer list down to what the material can render, lowest <see cref="BudgetPriority"/> first
+        /// so the same victims go as on the runtime path (<see cref="AvatarLayerSlots.TrimToBudget"/>) - the
+        /// definition's own art outranks stock tattoos, and both outrank clothing.
+        /// </summary>
+        private static void TrimByRank(List<(string path, Color tint)> layers, int max, string id, string what)
+        {
+            while (layers.Count > max)
+            {
+                int worst = 0;
+                for (int i = 1; i < layers.Count; i++)
+                    if (BudgetPriority(layers[i].path) < BudgetPriority(layers[worst].path)) worst = i;
+                Core.Log?.Warning("[appearance] '" + id + "' exceeds the " + what + " layer budget, dropped " + layers[worst].path);
+                layers.RemoveAt(worst);
             }
         }
 

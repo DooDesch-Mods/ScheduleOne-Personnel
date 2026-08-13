@@ -141,8 +141,10 @@ namespace Personnel.Content
             if (a.eyebrowThickness.HasValue) ap.EyebrowThickness = a.eyebrowThickness.Value;
             if (a.eyebrowRestingHeight.HasValue) ap.EyebrowRestingHeight = a.eyebrowRestingHeight.Value;
             if (a.eyebrowRestingAngle.HasValue) ap.EyebrowRestingAngle = a.eyebrowRestingAngle.Value;
-            ap.LeftEyeLidColor = ColorParse.Parse(a.leftEyeLidColor, ap.LeftEyeLidColor);
-            ap.RightEyeLidColor = ColorParse.Parse(a.rightEyeLidColor, ap.RightEyeLidColor);
+            // Eyelids fall back to the skin colour, not to the tan default: vanilla's creator writes the skin colour
+            // into both lids whenever it changes, so a definition that names only a skin colour means matching lids.
+            ap.LeftEyeLidColor = ColorParse.Parse(a.leftEyeLidColor, ap.SkinColor);
+            ap.RightEyeLidColor = ColorParse.Parse(a.rightEyeLidColor, ap.SkinColor);
             if (a.leftEye != null)
             {
                 if (a.leftEye.top.HasValue) ap.LeftEyeTop = a.leftEye.top.Value;
