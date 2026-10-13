@@ -12,6 +12,7 @@
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 ![Type](https://img.shields.io/badge/type-library%2Fdependency-lightgrey)
+[![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
 Personnel is primarily a **library / dependency**. On its own it adds no NPCs - it's the thing NPC
 packs and NPC-spawning mods depend on. Install it alongside an NPC pack and the NPCs appear:
