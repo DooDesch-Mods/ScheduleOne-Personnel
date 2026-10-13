@@ -13,6 +13,7 @@
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 ![Type](https://img.shields.io/badge/type-library%2Fdependency-lightgrey)
 [![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
+
 [![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_PumOa0VGv7p6p4ILOZsVO5lt/badge.svg)](https://mlvscan.com/attestations/att_PumOa0VGv7p6p4ILOZsVO5lt)
 
 Personnel is primarily a **library / dependency**. On its own it adds no NPCs - it's the thing NPC
