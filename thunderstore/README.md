@@ -10,6 +10,7 @@
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
+[![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
 [![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_o0dq1xyP5n2Ff-g0PdNuIve7/badge.svg)](https://mlvscan.com/attestations/att_o0dq1xyP5n2Ff-g0PdNuIve7)
 
