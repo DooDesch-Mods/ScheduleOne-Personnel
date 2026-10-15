@@ -148,7 +148,15 @@ namespace Personnel.Spawn
                     if (!string.IsNullOrWhiteSpace(a.CreateVehicleCode))
                     {
                         s.VehicleCode = a.CreateVehicleCode;
+                        // Without a position S1API would spawn the car at the world origin; the NPC's own spawn
+                        // point is the closest guess at where it lives.
                         if (a.CreateVehiclePosition.HasValue) s.VehicleSpawnPosition = a.CreateVehiclePosition.Value;
+                        else if (def.Spawn?.Position != null)
+                        {
+                            s.VehicleSpawnPosition = def.Spawn.Position.Value;
+                            Core.Log?.Msg($"'{def.Id}' schedule action '{a.Type}': createVehicle has no position - the car spawns at the NPC's spawn point.");
+                        }
+                        else Warn(def, a, "createVehicle has no position and the NPC no spawn point - the car spawns at the world origin");
                         if (a.CreateVehicleRotationY.HasValue)
                             s.VehicleSpawnRotation = Quaternion.Euler(0f, a.CreateVehicleRotationY.Value, 0f);
                     }
