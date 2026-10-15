@@ -71,8 +71,9 @@ namespace Personnel
                     if (!API.TryGet(DefId, out NpcDef def) || def == null) return false;
                     return def.Spawn?.Physical ?? (def.Schedule != null && def.Schedule.Count > 0);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Core.Log?.Warning($"IsPhysical lookup for '{GetType().Name}' threw ({ex.Message}) - assuming not physical.");
                     return false;
                 }
             }
@@ -96,9 +97,21 @@ namespace Personnel
             }
 
             // AvatarSettings (applied in ConfigurePrefab -> WithAppearanceDefaults) can't express bone
-            // distortion, so it's applied here as a separate pass once a real Avatar exists.
-            var avatar = gameObject.GetComponentInChildren<Avatar>(true);
-            if (avatar != null) API.ApplyDistortion(avatar, def);
+            // distortion, so it's applied here as a separate pass once a real Avatar exists. A failure here must not
+            // cost the NPC its region, schedule and map marker below.
+            if (def.Appearance?.Distortion != null && def.Appearance.Distortion.Count > 0)
+            {
+                try
+                {
+                    var avatar = gameObject.GetComponentInChildren<Avatar>(true);
+                    if (avatar != null) API.ApplyDistortion(avatar, def);
+                    else Core.Log?.Warning($"'{def.Id}': no avatar found - body distortion skipped.");
+                }
+                catch (Exception ex)
+                {
+                    Core.Log?.Error($"'{def.Id}': applying body distortion failed ({ex.Message}).");
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(def.Spawn?.Region))
             {

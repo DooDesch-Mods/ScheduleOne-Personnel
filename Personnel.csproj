@@ -108,6 +108,11 @@
       <HintPath>$(GameManagedPath)/Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- NakedAppearance / AvatarObject: the 0.4.7 avatar system (via AvatarLayers.props). -->
+    <Reference Include="Il2CppScheduleOne.Core">
+      <HintPath>$(GameManagedPath)/Il2CppScheduleOne.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <!-- NPCManager is a FishNet NetworkSingleton; referenced so its inherited statics resolve when adding
          the map marker (see API.AddMapMarker). -->
     <Reference Include="Il2CppFishNet.Runtime">
