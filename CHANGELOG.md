@@ -3,6 +3,17 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.1] - 2026-10-15
+
+### Fixed
+
+- Custom tattoos and face layers from packs show on NPCs again on game 0.4.7.
+- A pack car without a position spawns where its NPC starts, not at the edge of the map.
+
+### Changed
+
+- Needs S1API 3.2.1, up from 3.1.1. Update it along with the mod.
+
 ## [2.2.0] - 2026-08-13
 
 ### Fixed
