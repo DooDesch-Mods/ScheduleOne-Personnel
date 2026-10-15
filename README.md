@@ -7,7 +7,7 @@
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world
 > as if the mod author had built them in code. Built on [S1API](https://github.com/ifBars/S1API).
 
-![Version](https://img.shields.io/badge/version-2.1.1-blue)
+![Version](https://img.shields.io/badge/version-2.2.1-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
@@ -15,6 +15,8 @@
 [![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
 [![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_PumOa0VGv7p6p4ILOZsVO5lt/badge.svg)](https://mlvscan.com/attestations/att_PumOa0VGv7p6p4ILOZsVO5lt)
+
+![A pack NPC next to the car he drove across town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/header.jpg)
 
 Personnel is primarily a **library / dependency**. On its own it adds no NPCs - it's the thing NPC
 packs and NPC-spawning mods depend on. Install it alongside an NPC pack and the NPCs appear:
@@ -49,6 +51,12 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
   and `personnel route` collects a whole day's route. Everything lands on your clipboard.
 - **Stable, save-safe ids** with rename escape hatches (`packId`, `saveId`).
 - **Bundled example pack** (off by default) drops a working manifest template to copy.
+
+## Screenshots
+
+![A pack NPC driving his own car through town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/driving.jpg)
+
+![The same drive at night](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/night-drive.jpg)
 
 ## Requirements
 
@@ -159,8 +167,9 @@ under `Personnel_01_Main`.
 
 Packs are parsed into plain definitions at startup (no Unity objects). When a consumer first uses a
 definition, Personnel maps it onto S1API's avatar-settings builder; custom PNG layers are loaded into
-textures, wrapped into cloned avatar layers via S1API's `AvatarLayerFactory`, and registered at custom
-Resources paths - so the game's own pipeline renders, saves and networks them like built-in layers.
+textures, put on a clone of a built-in tattoo of the same kind, and registered in the game's avatar
+object library under the layer path - so the game's own pipeline renders, saves and networks them like
+built-in layers.
 Full NPCs ride entirely on S1API's prefab/networking machinery via `PersonnelNpc`.
 
 ## Compatibility
