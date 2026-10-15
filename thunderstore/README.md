@@ -6,12 +6,14 @@
 > customer/dealer economy, relationships, contacts - and Personnel spawns them as real S1API NPCs:
 > networked, saved, walking their routines. Since 2.0, no mod code needed at all.
 
-![Version](https://img.shields.io/badge/version-2.1.1-blue)
+![Version](https://img.shields.io/badge/version-2.2.1-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 
 [![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_PumOa0VGv7p6p4ILOZsVO5lt/badge.svg)](https://mlvscan.com/attestations/att_PumOa0VGv7p6p4ILOZsVO5lt)
+
+![A pack NPC next to the car he drove across town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/header.jpg)
 
 ## What it does
 
@@ -29,6 +31,10 @@
   finished `walkTo` action for the spot you are standing on, `personnel spawn` a full spawn block,
   and `personnel route` collects a whole day's route. Everything lands on your clipboard.
 - Stable, save-safe NPC ids with rename escape hatches (`packId`, `saveId`).
+
+## Screenshots
+
+![A pack NPC driving his own car through town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/driving.jpg)
 
 ## Requirements
 

@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using DooDesch.AvatarKit;
 using S1API.Rendering;
 using UnityEngine;
 
 namespace Personnel.Registration
 {
     /// <summary>
-    /// Realises custom PNG avatar layers by cloning a built-in tattoo layer of the
-    /// matching kind (inherits its CombinedMaterial / Order / UV expectations), swap in the custom texture and
-    /// register it at a custom Resources path via S1API (which patches Resources.Load). Idempotent + de-duplicated;
-    /// registration is lazy (first time a definition's appearance is built).
+    /// Realises custom PNG avatar layers: a built-in tattoo of the matching kind (face or body) is cloned as an
+    /// avatar object with the custom texture and registered in the game's avatar object library under the layer
+    /// path, which then works as a layer path everywhere, S1API's NPC appearance included
+    /// (<see cref="AvatarLook.RegisterCustomLayer"/>). Idempotent + de-duplicated; registration is lazy (first time a
+    /// definition's appearance is built).
     /// </summary>
     internal static class CustomLayerRegistry
     {
@@ -58,10 +60,10 @@ namespace Personnel.Registration
                     }
                 }
 
-                bool ok = AvatarLayerFactory.CreateAndRegisterAvatarLayer(SourceLayer(face), target, npcId ?? idHint, tex);
+                bool ok = AvatarLook.RegisterCustomLayer(SourceLayer(face), target, npcId ?? idHint, tex);
                 if (!ok)
                 {
-                    Core.Log?.Warning($"Custom layer for '{npcSource}/{npcId}': CreateAndRegisterAvatarLayer failed.");
+                    Core.Log?.Warning($"Custom layer for '{npcSource}/{npcId}': registering the avatar object failed.");
                     return null;
                 }
 
