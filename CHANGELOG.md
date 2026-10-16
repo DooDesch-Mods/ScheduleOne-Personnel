@@ -3,6 +3,16 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.2] - 2026-10-16
+
+### Fixed
+
+- Customers made in Personify can buy again and no longer freeze facing you after a deal attempt.
+
+### Changed
+
+- A customer with connections starts locked and opens with a free sample, like vanilla customers.
+
 ## [2.2.1] - 2026-10-15
 
 ### Fixed
