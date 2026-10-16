@@ -88,11 +88,15 @@ namespace Personnel
                 ApplyImpostorIfSupported(ab, def);
             });
 
+            string role = ResolveRole(def);
+
             // Phone-contact presentation. Unlocking the relationship makes ContactsDetailPanel render the
             // real name instead of "???" (respected against save data by S1API); it also keeps clear of the
             // vanilla NRE that triggers when a role-less NPC is left "mutually known but locked".
-            // contact.visible=false skips the unlock (experimental).
-            bool unlocked = def.Relationships?.Unlocked ?? def.Contact?.Visible ?? true;
+            // contact.visible=false skips the unlock (experimental). Customers follow ResolveCustomerUnlocked.
+            bool unlocked = role == "customer"
+                ? ResolveCustomerUnlocked(def)
+                : def.Relationships?.Unlocked ?? def.Contact?.Visible ?? true;
             builder.WithRelationshipDefaults(r =>
             {
                 r.SetUnlocked(unlocked);
@@ -108,7 +112,6 @@ namespace Personnel
                     r.WithConnectionsById(rel.Connections);
             });
 
-            string role = ResolveRole(def);
             if (role == "dealer") ApplyDealer(builder, def);
             else if (role == "customer") ApplyCustomer(builder, def);
 
@@ -155,11 +158,35 @@ namespace Personnel
             return null;
         }
 
+        /// <summary>
+        /// Start state of a customer. Vanilla customers start locked and open through a free sample or a
+        /// recommendation, and both need an unlocked connection (Customer.SampleOptionValid ->
+        /// RelationData.IsMutuallyKnown). A locked customer without connections could never be opened, so it
+        /// starts locked only when the pack lists connections. relationships.unlocked always wins.
+        /// </summary>
+        internal static bool ResolveCustomerUnlocked(NpcDef def)
+        {
+            if (def.Relationships?.Unlocked is bool explicitUnlocked) return explicitUnlocked;
+            bool hasConnections = def.Relationships?.Connections != null && def.Relationships.Connections.Count > 0;
+            if (!hasConnections)
+                Core.Log?.Msg($"'{def.Id}': customer has no relationships.connections - starts unlocked, since a locked customer is only opened through a connection.");
+            return !hasConnections;
+        }
+
         private static void ApplyCustomer(NPCPrefabBuilder builder, NpcDef def)
         {
             builder.WithCustomerDefaults(c =>
             {
                 var cu = def.Customer;
+
+                // Every drug type needs an affinity entry: the vanilla handover panel reads
+                // Customer.GetOrderedDrugTypes()[0], and an empty list throws there, which leaves the NPC stuck in
+                // its dialogue behaviour facing the player. WithAffinities seeds all types at neutral first.
+                var entries = new List<(string, float)>();
+                if (cu?.Affinities != null)
+                    foreach (var kv in cu.Affinities) entries.Add((kv.Key, kv.Value));
+                c.WithAffinities(entries);
+
                 if (cu == null) return;
                 if (cu.Spending != null) c.WithSpending(cu.Spending.Min, cu.Spending.Max);
                 if (cu.OrdersPerWeek != null) c.WithOrdersPerWeek((int)cu.OrdersPerWeek.Min, (int)cu.OrdersPerWeek.Max);
@@ -172,12 +199,6 @@ namespace Personnel
                     c.WithMutualRelationRequirement(cu.MutualRelationRequirement.Min, cu.MutualRelationRequirement.Max);
                 if (cu.CallPoliceChance.HasValue) c.WithCallPoliceChance(cu.CallPoliceChance.Value);
                 if (cu.DependenceBase.HasValue) c.WithDependence(cu.DependenceBase.Value, cu.DependenceMultiplier ?? 1f);
-                if (cu.Affinities != null && cu.Affinities.Count > 0)
-                {
-                    var entries = new List<(string, float)>();
-                    foreach (var kv in cu.Affinities) entries.Add((kv.Key, kv.Value));
-                    c.WithAffinities(entries);
-                }
                 if (cu.PreferredProperties != null && cu.PreferredProperties.Count > 0)
                     c.WithPreferredPropertiesById(cu.PreferredProperties.ToArray());
             });
