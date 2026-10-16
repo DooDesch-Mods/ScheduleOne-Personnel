@@ -74,6 +74,9 @@ namespace Personnel.Tools
                     case "spawn": SpawnBlock(); break;
                     case "route": Route(Arg(p, 2)); break;
                     case "npcs": Npcs(Arg(p, 2)); break;
+#if DEBUG
+                    case "cust": CustomerProbe.Run(Arg(p, 2), Arg(p, 3)); break;
+#endif
                     default:
                         Log($"unknown command '{cmd}'. Try: personnel help");
                         break;
