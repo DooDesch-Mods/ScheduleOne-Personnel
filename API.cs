@@ -19,12 +19,30 @@ namespace Personnel
     /// a definition's look onto any live <c>Avatar</c>. Definitions are loaded from packs on startup; register your
     /// own programmatically via <see cref="Register"/>.
     /// </summary>
+    /// <remarks>
+    /// A definition id is lower case: letters and digits, every other run of characters turned into "_". A pack entry
+    /// uses its authored <c>id</c>, or else <c>&lt;packId or folder name&gt;_&lt;npc name&gt;</c>, e.g. "examples_pale".
+    /// Packs load from UserData/Personnel/Packs/&lt;pack&gt;/manifest.json on startup.
+    /// </remarks>
+    /// <example>
+    /// Give a live avatar the look of a pack NPC:
+    /// <code>
+    /// if (Personnel.API.TryGet("examples_pale", out var def))
+    /// {
+    ///     Personnel.API.ApplyAppearance(avatar, def);
+    ///     Personnel.API.ApplyDistortion(avatar, def);
+    /// }
+    /// </code>
+    /// </example>
     public static class API
     {
         /// <summary>All loaded NPC definitions (pack-sourced + API-registered).</summary>
+        /// <value>Pack-sourced and API-registered definitions together. Empty when no pack is installed and nothing was registered.</value>
         public static IReadOnlyList<NpcDef> All => NpcRegistry.AllDefs;
 
         /// <summary>Look up a definition by id (case-insensitive).</summary>
+        /// <param name="id">A definition id such as "examples_pale", the same value as <see cref="NpcDef.Id"/>. Null or blank returns false.</param>
+        /// <param name="def">The first definition with that id, or null when the method returns false.</param>
         public static bool TryGet(string id, out NpcDef def) => NpcRegistry.TryGet(id, out def);
 
         /// <summary>Fired after the packs folder is rescanned (<see cref="Reload"/>). Re-register/refresh here.</summary>
@@ -35,15 +53,26 @@ namespace Personnel
         }
 
         /// <summary>Register a definition programmatically (de-duplicated by Source/Id). Returns false on duplicate.</summary>
+        /// <param name="def">
+        /// The definition. <see cref="NpcDef.Id"/> must be set, or the call returns false. An empty
+        /// <see cref="NpcDef.Source"/> becomes "API". A second definition with the same Source and Id, ignoring case,
+        /// returns false. Leave <see cref="NpcDef.PackDir"/> null: a definition with a PackDir counts as pack-sourced and
+        /// <see cref="Reload"/> drops it.
+        /// </param>
         public static bool Register(NpcDef def) => NpcRegistry.Add(def);
 
         /// <summary>
         /// Realise a definition's appearance into a vanilla <see cref="AvatarSettings"/>. Registers any custom PNG
         /// layers on first use. Call from the main thread (it touches Unity resources).
         /// </summary>
+        /// <param name="def">The definition, e.g. from <see cref="TryGet"/>.</param>
+        /// <returns>The settings, or null when <paramref name="def"/> is null.</returns>
         public static AvatarSettings BuildAvatarSettings(NpcDef def) => AvatarSettingsFactory.BuildAvatarSettings(def);
 
         /// <summary>Build the definition's <see cref="AvatarSettings"/> and load it onto a live avatar.</summary>
+        /// <param name="avatar">A live avatar in the scene.</param>
+        /// <param name="def">The definition, e.g. from <see cref="TryGet"/>.</param>
+        /// <returns>false when the avatar or the definition is null or no settings could be built.</returns>
         public static bool ApplyAppearance(Avatar avatar, NpcDef def)
         {
             if (avatar == null || def == null) return false;
@@ -58,6 +87,13 @@ namespace Personnel
         /// onto a live avatar. A separate pass from <see cref="ApplyAppearance"/> since vanilla AvatarSettings has
         /// no such concept - call this right after loading the normal appearance.
         /// </summary>
+        /// <param name="avatar">A live avatar, with its normal appearance already loaded.</param>
+        /// <param name="def">
+        /// The definition. Its <c>Appearance.Distortion</c> keys are the bones "HeadBone", "HipBone", "LeftFootBone",
+        /// "RightFootBone", "LeftShoulder", "RightShoulder", "MiddleSpine", "LowerSpine" and "LowestSpine", which take
+        /// a scale or a hide, plus "FaceMesh" and "BodyMesh0", "BodyMesh1" and so on, which only take a hide. A bone
+        /// missing from the dictionary goes back to scale 1 and visible. Other keys are ignored.
+        /// </param>
         public static void ApplyDistortion(Avatar avatar, NpcDef def)
         {
             if (avatar == null || def?.Appearance == null) return;
@@ -77,6 +113,20 @@ namespace Personnel
         /// you); call this directly only if you keep your own <c>NPC</c> subclass and want
         /// to configure it inside its <c>ConfigurePrefab</c>.
         /// </summary>
+        /// <param name="builder">The builder S1API passes to your NPC's <c>ConfigurePrefab</c>.</param>
+        /// <param name="def">
+        /// The definition. Its <see cref="NpcDef.SaveId"/>, or else its Id, becomes the S1API identity that saves store.
+        /// The display name splits at the first space into first and last name; an empty name becomes "NPC".
+        /// </param>
+        /// <example>
+        /// <code>
+        /// protected override void ConfigurePrefab(NPCPrefabBuilder builder)
+        /// {
+        ///     if (Personnel.API.TryGet("examples_pale", out var def))
+        ///         Personnel.API.ConfigureFromDef(builder, def);
+        /// }
+        /// </code>
+        /// </example>
         public static void ConfigureFromDef(NPCPrefabBuilder builder, NpcDef def)
         {
             if (builder == null || def == null) return;
@@ -282,6 +332,7 @@ namespace Personnel
         /// object exists (e.g. from <see cref="PersonnelNpc"/>'s creation hook); no-ops if the map manager or
         /// NPC component is not ready.
         /// </summary>
+        /// <param name="npcRoot">The NPC's root object, the one that carries the game's <c>NPC</c> component, e.g. <c>gameObject</c> inside the NPC class.</param>
         public static void AddMapMarker(GameObject npcRoot)
         {
             if (npcRoot == null || !S1NPCs.NPCManager.InstanceExists) return;
