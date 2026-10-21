@@ -3,6 +3,18 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.3] - 2026-10-21
+
+### Fixed
+
+- The example NPC Errand Eddie shows up in Northtown and works at the Motel Office. Before, he never spawned in
+  the world.
+- Custom NPCs no longer turn into a flat grey figure when you load a second save without restarting the game.
+
+### Changed
+
+- With `LoadExamplePack` on, an unchanged example pack from an older version is updated. One you edited is kept.
+
 ## [2.2.2] - 2026-10-16
 
 ### Fixed
