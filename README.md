@@ -186,4 +186,4 @@ Full NPCs ride entirely on S1API's prefab/networking machinery via `PersonnelNpc
 
 ## License
 
-Provided as-is under the [MIT License](LICENSE.md).
+DooDesch API License - build on the API, do not copy the code. See [LICENSE.md](LICENSE.md).
