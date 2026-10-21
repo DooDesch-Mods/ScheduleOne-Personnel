@@ -111,10 +111,10 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
         "skinColor": "#8899AA", "hairPath": "", "hairColor": "#101014",
         "faceLayers": [ { "file": "grin.png", "tint": "#FFFFFF" } ]
       },
-      "spawn": { "x": -66.4, "y": -2.9, "z": 86.1, "region": "Westville", "physical": true },
+      "spawn": { "x": -64.25, "y": 1.07, "z": 84.49, "region": "Northtown", "physical": true },
       "schedule": [
-        { "type": "walkTo", "time": "07:30", "position": [-70.1, -2.9, 80.0] },
-        { "type": "stayInBuilding", "time": "09:00", "duration": 240, "building": "Thrifty Threads" }
+        { "type": "stayInBuilding", "time": "09:00", "duration": 240, "building": "Motel Office" },
+        { "type": "walkTo", "time": "14:00", "position": [-64.25, 1.07, 84.49] }
       ]
     }
   ]
