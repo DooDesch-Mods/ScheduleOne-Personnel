@@ -160,7 +160,7 @@ under `Personnel_01_Main`.
 
 | Setting | Default | What it does |
 |---|---|---|
-| `LoadExamplePack` | `false` | When on, drops a small example pack into `UserData/Personnel/Packs/Examples` on startup (if not already there) - ready-made NPCs plus a manifest template to copy. Requires a game restart. Never overwrites an existing Examples folder. |
+| `LoadExamplePack` | `false` | When on, drops a small example pack into `UserData/Personnel/Packs/Examples` on startup (if not already there) - ready-made NPCs plus a manifest template to copy. Requires a game restart. An unedited older example pack is updated; an edited one is never touched. |
 | `EnableAutoRegister` | `true` | Kill switch for pack auto-registration. When off, packs with `autoRegister` load as data only and nothing spawns. Requires a game restart. |
 
 ## How it works

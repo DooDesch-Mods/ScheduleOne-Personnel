@@ -90,6 +90,7 @@ namespace Personnel
         protected override void OnCreated()
         {
             base.OnCreated();
+            Spawn.AvatarCullRepair.Watch(gameObject, DefId);
             if (!API.TryGet(DefId, out NpcDef def) || def == null)
             {
                 API.AddMapMarker(gameObject);
