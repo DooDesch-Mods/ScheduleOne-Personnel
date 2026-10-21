@@ -88,7 +88,7 @@ namespace Personnel.Tools
                 $"timeSinceLastDeal={Safe(() => c.TimeSinceLastDealCompleted)}");
         }
 
-        private static S1NPC Find(string filter, out string id)
+        internal static S1NPC Find(string filter, out string id)
         {
             id = null;
             var reg = Il2CppScheduleOne.NPCs.NPCManager.NPCRegistry;
@@ -146,7 +146,7 @@ namespace Personnel.Tools
             Log($"  dialogueHandler={(dh != null)} ");
         }
 
-        private static string Safe<T>(Func<T> f)
+        internal static string Safe<T>(Func<T> f)
         {
             try { return Convert.ToString(f()); }
             catch (Exception e) { return "ERR(" + e.GetType().Name + ")"; }
