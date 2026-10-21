@@ -76,6 +76,7 @@ namespace Personnel.Tools
                     case "npcs": Npcs(Arg(p, 2)); break;
 #if DEBUG
                     case "cust": CustomerProbe.Run(Arg(p, 2), Arg(p, 3)); break;
+                    case "avatar": AvatarProbe.Run(Arg(p, 2)); break;
 #endif
                     default:
                         Log($"unknown command '{cmd}'. Try: personnel help");
