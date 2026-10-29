@@ -73,6 +73,17 @@ namespace Personnel.Model
     }
 
     /// <summary>One startup inventory item (id + count).</summary>
+    /// <summary>Supplier role data (see <c>SupplierJson</c>).</summary>
+    public sealed class NpcSupplier
+    {
+        public float? MinOrderLimit;
+        public float? MaxOrderLimit;
+        public List<string> Items;
+        public string RecommendMessage;
+        public string UnlockHint;
+        public string StashDeadDrop;
+    }
+
     public sealed class NpcInventoryItem
     {
         public string Id;
@@ -140,5 +151,14 @@ namespace Personnel.Model
         public string CreateVehicleCode;
         public UnityEngine.Vector3? CreateVehiclePosition;
         public float? CreateVehicleRotationY;
+    }
+
+    /// <summary>
+    /// Own dialogue lines, resolved to (module, key) pairs. Each entry holds the variants; a variant is the list of
+    /// messages sent in a row (one element for a single line).
+    /// </summary>
+    public sealed class NpcLines
+    {
+        public List<(string Module, string Key, List<List<string>> Variants)> Entries = new List<(string, string, List<List<string>>)>();
     }
 }

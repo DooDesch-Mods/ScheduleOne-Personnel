@@ -49,6 +49,14 @@ namespace Personnel.Model
         /// <summary>Optional dealer economy defaults. Presence makes the NPC a dealer. May be null.</summary>
         public NpcDealer Dealer;
 
+        /// <summary>Supplier role data; null = not a supplier.</summary>
+        public NpcSupplier Supplier;
+
+        /// <summary>Absolute path of the phone contact picture, or null.</summary>
+        public string PortraitPath;
+        /// <summary>Own dialogue lines; null = vanilla lines only.</summary>
+        public NpcLines Lines;
+
         /// <summary>Optional inventory defaults. May be null.</summary>
         public NpcInventory Inventory;
 

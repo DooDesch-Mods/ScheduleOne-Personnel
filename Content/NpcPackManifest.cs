@@ -12,7 +12,7 @@ namespace Personnel.Content
         public string name;
         public string author;
 
-        /// <summary>Manifest schema version this pack was authored against. Current: 2. Omitted = 1.</summary>
+        /// <summary>Manifest schema version this pack was authored against. Current: 3. Omitted = 1.</summary>
         public int? schemaVersion;
 
         /// <summary>Stable pack identity used to derive NPC ids. Defaults to the pack folder name, so setting
@@ -43,11 +43,32 @@ namespace Personnel.Content
         public RelationshipsJson relationships;
         public CustomerJson customer;
         public DealerJson dealer;
+        /// <summary>Supplier role (schemaVersion 3): order limits, delivery assortment, unlock texts.</summary>
+        public SupplierJson supplier;
         public InventoryJson inventory;
         public List<ScheduleActionJson> schedule;
 
         /// <summary>Free-form per-consumer extension blocks (e.g. "backrooms"); kept raw and handed to consumers.</summary>
         public JObject extensions;
+
+        /// <summary>Phone contact picture (schemaVersion 3): a square PNG inside the pack folder, e.g. "portrait.png".</summary>
+        public string portrait;
+
+        /// <summary>Own lines (schemaVersion 3): greeting, phone texts and reactions; anything left out keeps the
+        /// vanilla line of the NPC's conversation type.</summary>
+        public LinesJson lines;
+    }
+
+    /// <summary>
+    /// Own lines of one NPC. Each list holds variants; the game picks one at random. A phone variant is a string
+    /// (one message) or a list of strings (several messages in a row). Keys are the vanilla dialogue keys, e.g.
+    /// "contract_request" or "deaddrop_ready"; "Module/key" picks the module explicitly.
+    /// </summary>
+    public sealed class LinesJson
+    {
+        public List<string> greeting;
+        public Dictionary<string, List<JToken>> phone;
+        public Dictionary<string, List<string>> reactions;
     }
 
     /// <summary>Mirror of the vanilla <c>AvatarSettings</c> knobs. All fields nullable so omitted keys keep defaults.</summary>
@@ -190,6 +211,24 @@ namespace Personnel.Content
         public string completedDealsVariable;
         public bool? allowInsufficientQuality;
         public bool? allowExcessQuality;
+    }
+
+    /// <summary>
+    /// Supplier block. Prices are the items' vanilla base prices; S1API has no per-item price. Order limits are the
+    /// debt limit at relation 0 and 5 (vanilla lerps between them).
+    /// </summary>
+    public sealed class SupplierJson
+    {
+        public float? minOrderLimit;
+        public float? maxOrderLimit;
+        /// <summary>Item ids sold by dead drop and at meetings (e.g. "ogkushseed", "cocaleaf").</summary>
+        public List<string> items;
+        /// <summary>Message the recommending customer sends when the supplier unlocks.</summary>
+        public string recommendMessage;
+        /// <summary>Hint shown on the locked contact.</summary>
+        public string unlockHint;
+        /// <summary>Optional vanilla dead drop GUID for the cash stash; empty = a stash next to the spawn.</summary>
+        public string stashDeadDrop;
     }
 
     public sealed class InventoryJson

@@ -42,12 +42,17 @@ namespace Personnel
             Log.Msg("Writing a schedule? Type 'personnel help' in the dev console to grab coordinates.");
         }
 
-#if DEBUG
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
+            Testing.LaunchMarker.OnSceneInitialized(sceneName);
+            Testing.NpcCatalog.OnSceneInitialized(sceneName);
+#if DEBUG
             if (sceneName == "Main")
                 MelonCoroutines.Start(DiagnoseAfterLoad());
+#endif
         }
+
+#if DEBUG
 
         // Dev-only probe: proves whether S1API's discovery sees the emitted types and whether their
         // instances made it into NPC.All (world side), ~15s after the main scene comes up.

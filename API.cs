@@ -7,6 +7,7 @@ using Personnel.Appearance;
 using Personnel.Model;
 using Personnel.Registration;
 using S1API.Entities;
+using S1API.Rendering;
 using UnityEngine;
 using Avatar = Il2CppScheduleOne.AvatarFramework.Avatar;
 using S1NPCs = Il2CppScheduleOne.NPCs;
@@ -165,6 +166,9 @@ namespace Personnel
 
             if (role == "dealer") ApplyDealer(builder, def);
             else if (role == "customer") ApplyCustomer(builder, def);
+            else if (role == "supplier") ApplySupplier(builder, def);
+
+            ApplyPortrait(builder, def);
 
             ApplyInventory(builder, def);
 
@@ -182,8 +186,9 @@ namespace Personnel
         }
 
         /// <summary>
-        /// Effective economy role of a definition: a dealer{} block wins over a customer{} block, which wins
-        /// over the legacy behavior.conversation shorthand. Returns "dealer", "customer" or null.
+        /// Effective economy role of a definition: a dealer{} block wins over a supplier{} block, which wins over a
+        /// customer{} block, which wins over the legacy behavior.conversation shorthand. Returns "dealer",
+        /// "supplier", "customer" or null.
         /// </summary>
         internal static string ResolveRole(NpcDef def)
         {
@@ -197,6 +202,12 @@ namespace Personnel
                 if (def.Customer != null || legacyCustomer)
                     Core.Log?.Warning($"'{def.Id}': has both dealer and customer data - dealer wins (an NPC can only be one).");
                 return "dealer";
+            }
+            if (def.Supplier != null)
+            {
+                if (def.Customer != null || legacyCustomer)
+                    Core.Log?.Warning($"'{def.Id}': has both supplier and customer data - supplier wins (an NPC can only be one).");
+                return "supplier";
             }
             if (def.Customer != null)
             {
@@ -253,6 +264,61 @@ namespace Personnel
                 if (cu.PreferredProperties != null && cu.PreferredProperties.Count > 0)
                     c.WithPreferredPropertiesById(cu.PreferredProperties.ToArray());
             });
+        }
+
+        private static void ApplySupplier(NPCPrefabBuilder builder, NpcDef def)
+        {
+            var su = def.Supplier;
+            if (def.Spawn?.Physical == false)
+                Core.Log?.Warning($"'{def.Id}': a supplier needs a world body - spawn.physical=false is ignored.");
+            builder.WithSupplierDefaults(s =>
+            {
+                if (su.MinOrderLimit.HasValue || su.MaxOrderLimit.HasValue)
+                {
+                    float min = su.MinOrderLimit ?? 100f;
+                    float max = su.MaxOrderLimit ?? Math.Max(min, 1000f);
+                    if (max < min) { Core.Log?.Warning($"'{def.Id}': supplier maxOrderLimit < minOrderLimit - swapped."); (min, max) = (max, min); }
+                    s.WithOrderLimits(min, max);
+                }
+                int items = 0;
+                if (su.Items != null)
+                    foreach (string id in su.Items) { s.WithDeliveryItem(id); items++; }
+                if (items == 0)
+                    Core.Log?.Warning($"'{def.Id}': supplier has no items - it will sell nothing.");
+                if (!string.IsNullOrWhiteSpace(su.RecommendMessage)) s.WithRecommendationMessage(su.RecommendMessage);
+                if (!string.IsNullOrWhiteSpace(su.UnlockHint)) s.WithUnlockHint(su.UnlockHint);
+                if (!string.IsNullOrWhiteSpace(su.StashDeadDrop)) s.WithStashDeadDrop(su.StashDeadDrop);
+                Core.Log?.Msg($"'{def.Id}': supplier configured ({items} item(s), limits {su.MinOrderLimit?.ToString() ?? "default"}-{su.MaxOrderLimit?.ToString() ?? "default"}).");
+            });
+        }
+
+        private static readonly Dictionary<string, Sprite> _portraits = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Sets the phone contact picture from the pack's portrait PNG. It goes into the prefab data before the NPC
+        /// wakes, so Messages, Contacts, the dealer and customer lists and the map read it without a patch.
+        /// </summary>
+        private static void ApplyPortrait(NPCPrefabBuilder builder, NpcDef def)
+        {
+            if (string.IsNullOrEmpty(def.PortraitPath)) return;
+            try
+            {
+                if (!_portraits.TryGetValue(def.PortraitPath, out Sprite sprite) || sprite == null)
+                {
+                    Texture2D tex = TextureUtils.LoadTextureFromFile(def.PortraitPath);
+                    if (tex == null) { Core.Log?.Error($"'{def.Id}': portrait '{def.PortraitPath}' could not be loaded."); return; }
+                    tex.hideFlags = HideFlags.DontUnloadUnusedAsset;
+                    sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+                    sprite.hideFlags = HideFlags.DontUnloadUnusedAsset;
+                    _portraits[def.PortraitPath] = sprite;
+                }
+                builder.WithIcon(sprite);
+                Core.Log?.Msg($"'{def.Id}': contact picture set from '{System.IO.Path.GetFileName(def.PortraitPath)}'.");
+            }
+            catch (Exception e)
+            {
+                Core.Log?.Error($"'{def.Id}': setting the contact picture failed ({e.Message}).");
+            }
         }
 
         private static void ApplyDealer(NPCPrefabBuilder builder, NpcDef def)

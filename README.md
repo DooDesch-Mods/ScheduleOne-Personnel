@@ -34,7 +34,8 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 
 - **NPC mods without code.** A pack manifest can carry the whole NPC: spawn point and region, a
   daily schedule (walk routes, buildings, seats, vending machines, slot machines, dialogue spots,
-  car trips), customer or dealer economy, inventory, relationships and contact presentation. Flip
+  car trips), customer, dealer or supplier economy, inventory, relationships, a contact picture and
+  the NPC's own greetings, phone texts and reactions. Flip
   `"autoRegister": true` and Personnel spawns them as real world NPCs that run their day on their
   own.
 - **Real S1API NPCs, not props.** Prefab, networking, save/load and mugshot are handled by S1API -
@@ -101,7 +102,7 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
 {
   "name": "My Pack",
   "author": "you",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "autoRegister": true,
   "npcs": [
     {
@@ -125,8 +126,8 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
   Ids are the save identity - never change them once a pack shipped (use `saveId` when renaming).
 - Appearance mirrors the S1API avatar-settings surface; every field is optional and defaults to the
   game's baseline. Layers take either a `path` (existing game layer) or a `file` (pack-relative PNG).
-- On top of `appearance` there are `spawn`, `schedule`, `customer`, `dealer`, `inventory`,
-  `relationships` and `contact` blocks - the
+- On top of `appearance` there are `spawn`, `schedule`, `customer`, `dealer`, `supplier`, `inventory`,
+  `relationships` and `contact` blocks, a `portrait` (phone contact picture) and own `lines` - the
   [Pack Format documentation page](https://docs.doodesch.de/mods/personnel/guides/pack-format/)
   documents every field.
 - Enable the example pack (Configuration below) for a complete, working template.
