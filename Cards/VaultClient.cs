@@ -328,6 +328,7 @@ namespace Personnel.Cards
                 var (ackStatus, ackBody) = await Send(HttpMethod.Post, $"/api/v1/inbox/{Uri.EscapeDataString(id)}/ack", null, true, CancellationToken.None);
                 if (ackStatus != HttpStatusCode.NoContent && ackStatus != HttpStatusCode.OK)
                     Core.Log?.Warning($"NPC Vault: inbox ack for {code} answered {(int)ackStatus}: {ackBody}");
+                else Core.Log?.Msg($"NPC Vault: inbox item {id} ({code}) acknowledged.");
                 Post(() => Toast("NPC Vault", r.Ok
                     ? (CardLibrary.PendingRestart && !r.AlreadyInstalled ? r.Message + " Restart to meet them." : r.Message)
                     : "A sent card could not be installed."));
@@ -351,7 +352,7 @@ namespace Personnel.Cards
                 }
                 byte[] png = await res.Content.ReadAsByteArrayAsync();
                 Core.Log?.Msg($"NPC Vault: downloaded card {code} ({png.Length / 1024} KB).");
-                return CardLibrary.Import(png, source);
+                return CardLibrary.Import(png, source, code);
             }
             catch (Exception ex)
             {

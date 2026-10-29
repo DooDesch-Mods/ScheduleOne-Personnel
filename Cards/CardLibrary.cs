@@ -10,7 +10,7 @@ using Personnel.Content;
 
 namespace Personnel.Cards
 {
-    /// <summary>Outcome of <see cref="CardLibrary.Import(byte[], string)"/>.</summary>
+    /// <summary>Outcome of <see cref="CardLibrary.Import(byte[], string, string)"/>.</summary>
     public sealed class CardImportResult
     {
         public bool Ok;
@@ -105,8 +105,12 @@ namespace Personnel.Cards
             return Import(png, Path.GetFileName(path));
         }
 
-        /// <summary>Reads and installs a card PNG. Never throws; the result says what happened.</summary>
-        public static CardImportResult Import(byte[] png, string sourceName)
+        /// <summary>
+        /// Reads and installs a card PNG. Never throws; the result says what happened. <paramref name="vaultCode"/>
+        /// is the code NPC Vault lists the card under: the vault hands out a new code when the card's own one is
+        /// taken by a different card, and installing under the card's own code would replace that other card.
+        /// </summary>
+        public static CardImportResult Import(byte[] png, string sourceName, string vaultCode = null)
         {
             CardReadResult read = CardCodec.Read(png);
             if (!read.Ok)
@@ -117,7 +121,7 @@ namespace Personnel.Cards
 
             try
             {
-                lock (Gate) return Install(read, sourceName);
+                lock (Gate) return Install(read, sourceName, vaultCode);
             }
             catch (Exception ex)
             {
@@ -126,7 +130,7 @@ namespace Personnel.Cards
             }
         }
 
-        private static CardImportResult Install(CardReadResult read, string sourceName)
+        private static CardImportResult Install(CardReadResult read, string sourceName, string vaultCode)
         {
             CardContents c = read.Contents;
             JObject npc = JObject.Parse(c.NpcJson);
@@ -138,6 +142,11 @@ namespace Personnel.Cards
             }
 
             string code = meta?.Value<string>("cardId");
+            if (IsValidCode(vaultCode) && vaultCode != code)
+            {
+                Core.Log?.Msg($"Card import '{sourceName}': the card calls itself '{code ?? "(none)"}', NPC Vault lists it as '{vaultCode}'; installing as '{vaultCode}'.");
+                code = vaultCode;
+            }
             if (!IsValidCode(code))
             {
                 // A card without its own code gets a stable one from its content, so importing it twice still
