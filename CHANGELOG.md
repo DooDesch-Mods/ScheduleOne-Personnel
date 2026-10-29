@@ -3,6 +3,19 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.0] - 2026-10-29
+
+### Added
+
+- NPC cards: install NPCs from NPC Vault (personify.doomods.com) or from card images in `UserData/Personnel/Import`.
+- Console: `personnel cards` lists installed cards, `personnel card import` and `personnel card remove` add and
+  remove one, `personnel connect` links the game to your NPC Vault account.
+
+### For mod authors
+
+- `CardsApi` lists, installs and removes cards, browses NPC Vault, links a device and uploads. NPC Cards and
+  Personify use it.
+
 ## [2.3.0] - 2026-10-29
 
 ### Added
