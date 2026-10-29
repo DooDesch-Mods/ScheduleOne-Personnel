@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Off-game tests for the card codec. Links the codec source; it must stay free of Unity and MelonLoader. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <DeployVerifyDisable>true</DeployVerifyDisable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Cards/CardPng.cs" Link="Cards/CardPng.cs" />
+    <Compile Include="../../Cards/CardCodec.cs" Link="Cards/CardCodec.cs" />
+  </ItemGroup>
+
+</Project>
