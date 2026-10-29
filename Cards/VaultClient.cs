@@ -68,7 +68,8 @@ namespace Personnel.Cards
 
         private static string TokenPath => Path.Combine(MelonEnvironment.UserDataDirectory, "Personnel", "vault.json");
 
-        private static readonly string OwnAgent = "Personnel/" + DooDesch.ModVersion.Current;
+        // A property, not a field: Http above is built from it, and static fields initialise in source order.
+        private static string OwnAgent => "Personnel/" + DooDesch.ModVersion.Current;
 
         // The mod that asked for the current request ("NPCCards/1.0.0"), set by CardsApi.Caller. It flows into the
         // worker task with the execution context, so a request started inside the scope carries it to the end.
