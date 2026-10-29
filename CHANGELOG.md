@@ -3,6 +3,24 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] - 2026-10-29
+
+### Added
+
+- Pack NPCs can be suppliers: they sell seeds and other goods by phone and drop them off like the game's own
+  suppliers.
+- Pack NPCs can carry their own contact picture in the phone.
+- Pack NPCs can say their own lines: greetings, phone messages and answers. Lines a pack leaves out stay the
+  game's.
+
+### For mod authors
+
+- Manifest `schemaVersion: 3` adds the `supplier` block, `portrait` (a PNG in the pack) and `lines`. Packs with
+  schema 1 and 2 load unchanged. Format: the pack format guide on docs.doodesch.de.
+- `UserData/Personify/World/npcs.json` lists every NPC of the loaded save (id, name, region, role, source).
+- `Personnel.Testing.LaunchMarker.Write(saveSlot, npcId)` loads that save on the next start and puts the player
+  next to the NPC; `RestartGame()` restarts the game for it.
+
 ## [2.2.3] - 2026-10-21
 
 ### Fixed
