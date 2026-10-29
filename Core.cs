@@ -27,7 +27,10 @@ namespace Personnel
             Preferences.Initialize();
             ExamplePack.ExtractIfEnabled();
 
+            // Cards dropped into UserData/Personnel/Import install before the packs load, so they need no restart.
+            Cards.CardLibrary.ImportDropFolder();
             int packDefs = NpcRegistry.LoadPacks();
+            Cards.CardLibrary.MarkPacksLoaded();
 
             if (Preferences.EnableAutoRegister)
                 Spawn.DynamicNpcTypeFactory.EmitAutoRegisteredTypes(NpcRegistry.AllDefs);
@@ -37,10 +40,14 @@ namespace Personnel
             try { HarmonyInstance.PatchAll(); }
             catch (System.Exception e) { Log.Warning("Console commands unavailable: " + e.Message); }
 
+            Cards.VaultClient.Initialize();
+
             LogRosterSummary(packDefs);
             Log.Msg($"Drop packs in: {PackLoader.PacksRoot}");
             Log.Msg("Writing a schedule? Type 'personnel help' in the dev console to grab coordinates.");
         }
+
+        public override void OnUpdate() => Cards.VaultClient.Pump();
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {

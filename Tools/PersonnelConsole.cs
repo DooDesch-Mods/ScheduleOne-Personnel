@@ -74,6 +74,12 @@ namespace Personnel.Tools
                     case "spawn": SpawnBlock(); break;
                     case "route": Route(Arg(p, 2)); break;
                     case "npcs": Npcs(Arg(p, 2)); break;
+                    case "cards": CardsList(); break;
+                    case "card": CardCommand(p); break;
+                    case "connect": Connect(); break;
+                    case "disconnect":
+                        Cards.VaultClient.Disconnect(ok => Log(ok ? "disconnected from NPC Vault." : "disconnected here; remove the device on the website too."));
+                        break;
 #if DEBUG
                     case "cust": CustomerProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "avatar": AvatarProbe.Run(Arg(p, 2)); break;
@@ -107,7 +113,87 @@ namespace Personnel.Tools
             Log("  personnel route show    print the collected steps");
             Log("  personnel route clear   start a new route");
             Log("  personnel npcs [filter] list loaded Personnel NPCs, and where the physical ones are right now");
+            Log("  personnel cards         list installed NPC cards");
+            Log("  personnel card import <file.png>   install a card (a bare name is looked up in " + Cards.CardLibrary.ImportDir + ")");
+            Log("  personnel card remove <code>       remove an installed card");
+            Log("  personnel connect       link this game to your NPC Vault account (cards you send arrive in game)");
+            Log("  personnel disconnect    unlink this game");
             Notify("Personnel", "Command list written to the MelonLoader log.");
+        }
+
+        // ---- cards -------------------------------------------------------------------------------------
+
+        private static void CardsList()
+        {
+            var cards = Cards.CardLibrary.List();
+            if (cards.Count == 0)
+            {
+                Log("no NPC cards installed. Drop card PNGs into " + Cards.CardLibrary.ImportDir + " and start the game.");
+                Notify("Personnel", "No NPC cards installed.");
+                return;
+            }
+            foreach (var c in cards)
+                Log($"  {c.Code}  {c.Name}  ({c.Role}{(c.Creator != null ? ", by " + c.Creator : "")})  npc {c.NpcId}");
+            if (Cards.CardLibrary.PendingRestart) Log("card changes take effect after the next game start.");
+            Notify("Personnel", $"{cards.Count} NPC card(s) installed.");
+        }
+
+        private static void CardCommand(string[] p)
+        {
+            string sub = Arg(p, 2)?.ToLowerInvariant();
+            if (sub == "import" && p.Length > 3)
+            {
+                // Paths may contain spaces; everything after "import" is the path.
+                string path = string.Join(" ", p, 3, p.Length - 3).Trim('"');
+                if (!Path.IsPathRooted(path))
+                {
+                    string inImport = Path.Combine(Cards.CardLibrary.ImportDir, path);
+                    path = File.Exists(inImport) ? inImport : Path.Combine(MelonEnvironment.UserDataDirectory, path);
+                }
+                var r = Cards.CardLibrary.ImportFile(path);
+                Log(r.Ok ? $"{r.Message} Card {r.Code}, npc {r.NpcId}." : "card not installed: " + r.Message);
+                if (r.Ok && Cards.CardLibrary.PendingRestart) Log("restart the game to meet this NPC.");
+                Notify("Personnel", r.Ok ? r.Message : "Card not installed.");
+                return;
+            }
+            if (sub == "remove" && p.Length > 3)
+            {
+                bool removed = Cards.CardLibrary.Remove(p[3].ToLowerInvariant());
+                Log(removed ? $"card {p[3]} removed; the NPC leaves after the next game start." : $"no installed card with code '{p[3]}'.");
+                Notify("Personnel", removed ? "Card removed." : "No card with that code.");
+                return;
+            }
+            Log("usage: personnel card import <file.png> | personnel card remove <code>");
+        }
+
+        private static void Connect()
+        {
+            if (Cards.VaultClient.IsConnected)
+            {
+                Log($"already connected as {Cards.VaultClient.UserName}. 'personnel disconnect' unlinks this game.");
+                return;
+            }
+            Cards.VaultClient.BeginConnect(state =>
+            {
+                switch (state.State)
+                {
+                    case Cards.VaultConnectState.Phase.Waiting:
+                        Log($"open {state.VerifyUrl} and confirm the code {state.UserCode} (copied to your clipboard).");
+                        Copy(state.UserCode);
+                        Notify("NPC Vault", "Confirm code " + state.UserCode + " in your browser.");
+                        try { Application.OpenURL(state.VerifyUrl); }
+                        catch (Exception e) { Log("could not open the browser (" + e.Message + "); open the address yourself."); }
+                        break;
+                    case Cards.VaultConnectState.Phase.Connected:
+                        Log($"connected to NPC Vault as {state.UserName}.");
+                        Notify("NPC Vault", "Connected as " + state.UserName + ".");
+                        break;
+                    default:
+                        Log("connect failed: " + state.Message);
+                        Notify("NPC Vault", "Connect failed.");
+                        break;
+                }
+            });
         }
 
         // ---- position ----------------------------------------------------------------------------------

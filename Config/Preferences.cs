@@ -14,6 +14,7 @@ namespace Personnel.Config
         private static MelonPreferences_Category _category;
         private static MelonPreferences_Entry<bool> _loadExamplePack;
         private static MelonPreferences_Entry<bool> _enableAutoRegister;
+        private static MelonPreferences_Entry<string> _vaultUrl;
 
         internal static void Initialize()
         {
@@ -30,9 +31,14 @@ namespace Personnel.Config
                 "ON by default. Packs that opt in (\"autoRegister\": true, or per-NPC \"spawn\": { \"auto\": true }) " +
                 "get their NPCs registered as real world NPCs without any consumer mod. Turn OFF as a kill switch " +
                 "if a pack misbehaves. Requires a game restart.");
+
+            _vaultUrl = _category.CreateEntry("VaultUrl", "", "NPC Vault address",
+                "Leave empty for https://personify.doomods.com. Only change it to point at a local test server. " +
+                "Requires a game restart.");
         }
 
         internal static bool LoadExamplePack => _loadExamplePack?.Value ?? false;
         internal static bool EnableAutoRegister => _enableAutoRegister?.Value ?? true;
+        internal static string VaultUrl => string.IsNullOrWhiteSpace(_vaultUrl?.Value) ? null : _vaultUrl.Value.Trim();
     }
 }
