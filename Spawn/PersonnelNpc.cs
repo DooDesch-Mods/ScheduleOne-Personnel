@@ -58,6 +58,26 @@ namespace Personnel
         }
 
         /// <summary>
+        /// Def-driven: true when the definition has a supplier{} block (and no dealer{} block). Read by S1API before
+        /// ConfigurePrefab to pick the supplier base prefab, on an uninitialized instance - must never throw.
+        /// </summary>
+        public override bool IsSupplier
+        {
+            get
+            {
+                try
+                {
+                    return API.TryGet(DefId, out NpcDef def) && API.ResolveRole(def) == "supplier";
+                }
+                catch (Exception ex)
+                {
+                    Core.Log?.Warning($"IsSupplier lookup for '{GetType().Name}' threw ({ex.Message}) - assuming no supplier.");
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Def-driven: spawn.physical when set, otherwise physical exactly when the definition has a
         /// schedule. Default false = phone-contact only (no world body, no pathing cost - the right choice
         /// for most roster NPCs). Override if your mod decides this itself.
@@ -69,6 +89,7 @@ namespace Personnel
                 try
                 {
                     if (!API.TryGet(DefId, out NpcDef def) || def == null) return false;
+                    if (API.ResolveRole(def) == "supplier") return true;
                     return def.Spawn?.Physical ?? (def.Schedule != null && def.Schedule.Count > 0);
                 }
                 catch (Exception ex)
@@ -113,6 +134,8 @@ namespace Personnel
                     Core.Log?.Error($"'{def.Id}': applying body distortion failed ({ex.Message}).");
                 }
             }
+
+            Personnel.Spawn.CustomLines.Apply(gameObject, def);
 
             if (!string.IsNullOrWhiteSpace(def.Spawn?.Region))
             {

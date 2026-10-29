@@ -79,7 +79,7 @@ namespace Personnel.Content
         }
 
         /// <summary>Highest manifest schemaVersion this loader understands.</summary>
-        public const int SchemaVersion = 2;
+        public const int SchemaVersion = 3;
 
         private static NpcDef ToDef(string packName, string packDir, NpcPackManifest manifest, NpcEntry e)
         {
@@ -114,6 +114,9 @@ namespace Personnel.Content
                 Relationships = BuildRelationships(e.relationships),
                 Customer = BuildCustomer(packName, display, e.customer),
                 Dealer = BuildDealer(e.dealer),
+                Supplier = BuildSupplier(e.supplier),
+                PortraitPath = ResolvePortrait(packName, packDir, display, e.portrait),
+                Lines = BuildLines(display, e.lines),
                 Inventory = BuildInventory(packName, display, e.inventory),
                 Schedule = BuildSchedule(packName, display, e.schedule),
                 Extensions = BuildExtensions(e.extensions)
@@ -281,6 +284,106 @@ namespace Personnel.Content
                     if (!string.IsNullOrWhiteSpace(p)) cu.PreferredProperties.Add(p.Trim());
             }
             return cu;
+        }
+
+        // Vanilla module of each phone/dialogue key (see Customer, Dealer and Supplier in the game code). Keys not
+        // listed here belong to the Generic module.
+        private static readonly Dictionary<string, string> LineModules = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["contract_request"] = "Customer", ["contract_accepted"] = "Customer", ["contract_rejected"] = "Customer",
+            ["offer_expired"] = "Customer", ["counteroffer_accepted"] = "Customer", ["counteroffer_rejected"] = "Customer",
+            ["awaiting_deal"] = "Customer", ["late_deal"] = "Customer", ["customer_rejected_deal"] = "Customer",
+            ["deal_completed"] = "Customer", ["post_deal_recommend"] = "Customer", ["post_deal_recommend_dealer"] = "Customer",
+            ["offer_reject"] = "Customer", ["sample_insufficient"] = "Customer", ["sample_sufficient"] = "Customer",
+            ["sample_consume_wait"] = "Customer", ["sample_offer_rejected"] = "Customer", ["sample_offer_rejected_police"] = "Customer",
+            ["request_product_rejected"] = "Customer", ["request_product_initial"] = "Customer", ["request_product_after_follow"] = "Customer",
+            ["dealer_rob_defended"] = "Dealer", ["dealer_rob_partially_defended"] = "Dealer", ["dealer_rob_loss"] = "Dealer",
+            ["inventory_depleted"] = "Dealer",
+            ["deaddrop_requested"] = "Supplier", ["deaddrop_ready"] = "Supplier", ["supplier_request_repayment"] = "Supplier",
+        };
+
+        /// <summary>Greeting keys the vanilla dialogue controller picks from by time of day and weather.</summary>
+        public static readonly string[] GreetingKeys = { "morning_greeting", "afternoon_greeting", "night_greeting", "rainy_greeting" };
+
+        private static NpcLines BuildLines(string display, LinesJson l)
+        {
+            if (l == null) return null;
+            var lines = new NpcLines();
+            var greet = Variants(display, "greeting", l.greeting?.ConvertAll(x => (JToken)x));
+            if (greet.Count > 0)
+                foreach (string k in GreetingKeys) lines.Entries.Add(("Greetings", k, greet));
+
+            if (l.phone != null)
+                foreach (var kv in l.phone)
+                {
+                    string module, key = kv.Key?.Trim() ?? "";
+                    int slash = key.IndexOf('/');
+                    if (slash > 0) { module = key.Substring(0, slash); key = key.Substring(slash + 1); }
+                    else module = LineModules.TryGetValue(key, out string m) ? m : "Generic";
+                    if (key.Length == 0) { Core.Log?.Warning($"NPC '{display}': lines.phone has an empty key - skipped."); continue; }
+                    var v = Variants(display, key, kv.Value);
+                    if (v.Count > 0) lines.Entries.Add((module, key, v));
+                }
+
+            if (l.reactions != null)
+                foreach (var kv in l.reactions)
+                {
+                    var v = Variants(display, kv.Key, kv.Value?.ConvertAll(x => (JToken)x));
+                    if (v.Count > 0) lines.Entries.Add(("Reactions", kv.Key, v));
+                }
+            return lines.Entries.Count > 0 ? lines : null;
+        }
+
+        // A variant is a string (one message) or a list of strings (messages in a row). Empty ones are dropped.
+        private static List<List<string>> Variants(string display, string key, List<JToken> raw)
+        {
+            var outp = new List<List<string>>();
+            if (raw == null) return outp;
+            foreach (var t in raw)
+            {
+                var msgs = new List<string>();
+                if (t is JArray a) { foreach (var x in a) if (x.Type == JTokenType.String && ((string)x).Trim().Length > 0) msgs.Add((string)x); }
+                else if (t != null && t.Type == JTokenType.String && ((string)t).Trim().Length > 0) msgs.Add((string)t);
+                else if (t != null && t.Type != JTokenType.Null) Core.Log?.Warning($"NPC '{display}': line '{key}' has a {t.Type} variant - only text or a list of texts is read.");
+                if (msgs.Count > 0) outp.Add(msgs);
+            }
+            if (outp.Count == 0) Core.Log?.Warning($"NPC '{display}': line '{key}' has no text - the vanilla line stays.");
+            return outp;
+        }
+
+        private static NpcSupplier BuildSupplier(SupplierJson s)
+        {
+            if (s == null) return null;
+            var items = new List<string>();
+            if (s.items != null)
+                foreach (string i in s.items)
+                    if (!string.IsNullOrWhiteSpace(i)) items.Add(i.Trim());
+            return new NpcSupplier
+            {
+                MinOrderLimit = s.minOrderLimit,
+                MaxOrderLimit = s.maxOrderLimit,
+                Items = items,
+                RecommendMessage = s.recommendMessage,
+                UnlockHint = s.unlockHint,
+                StashDeadDrop = s.stashDeadDrop
+            };
+        }
+
+        private static string ResolvePortrait(string packName, string packDir, string display, string portrait)
+        {
+            if (string.IsNullOrWhiteSpace(portrait)) return null;
+            string full = Path.GetFullPath(Path.Combine(packDir, portrait.Replace('/', Path.DirectorySeparatorChar)));
+            if (!full.StartsWith(Path.GetFullPath(packDir), StringComparison.OrdinalIgnoreCase))
+            {
+                Core.Log?.Warning($"Pack '{packName}': NPC '{display}' portrait '{portrait}' points outside the pack - ignored.");
+                return null;
+            }
+            if (!File.Exists(full))
+            {
+                Core.Log?.Warning($"Pack '{packName}': NPC '{display}' portrait '{portrait}' not found - ignored.");
+                return null;
+            }
+            return full;
         }
 
         private static NpcDealer BuildDealer(DealerJson d)
