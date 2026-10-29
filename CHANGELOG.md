@@ -3,6 +3,12 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.1] - 2026-10-30
+
+### Fixed
+
+- NPCs from cards and packs wear their shirts and trousers again. Many walked around in underwear.
+
 ## [2.4.0] - 2026-10-29
 
 ### Added
