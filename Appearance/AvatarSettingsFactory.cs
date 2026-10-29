@@ -48,7 +48,8 @@ namespace Personnel.Appearance
             var accList = new Il2CppSystem.Collections.Generic.List<AvatarSettings.AccessorySetting>();
 
             AddLayers(def, a.FaceLayers, faceList, face: true);
-            AddLayers(def, a.BodyLayers, bodyList, face: false);
+            AddLayers(def, WithoutWornClothing(a.BodyLayers), bodyList, face: false);
+            AddAccessories(WornClothing(a.BodyLayers), accList);
             AddAccessories(a.Accessories, accList);
 
             // Face layers are read by POSITION: entry 0 is the mouth, entry 1 is the facial hair and is drawn in the
@@ -94,6 +95,52 @@ namespace Personnel.Appearance
             if (path.IndexOf("personnel", StringComparison.OrdinalIgnoreCase) >= 0) return 3;
             if (path.IndexOf("/Tattoos/", StringComparison.OrdinalIgnoreCase) >= 0) return 2;
             return 1;
+        }
+
+        private static readonly Dictionary<string, bool> WornCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// True for a stock body layer the game now draws as a worn clothing object (a shirt, trousers, a suit).
+        /// S1API turns body layers into the NPC's naked appearance, and the game never puts on a worn object from
+        /// there, so the NPC walks around in underwear. Sent as an accessory, the same object lands in the outfit
+        /// and is worn. Underwear stays a body layer: the naked appearance already carries it.
+        /// </summary>
+        internal static bool IsWornClothing(NpcLayer l)
+        {
+            if (l == null || l.Texture != null || !string.IsNullOrWhiteSpace(l.File) || string.IsNullOrWhiteSpace(l.Path))
+                return false;
+            if (WornCache.TryGetValue(l.Path, out bool cached)) return cached;
+
+            bool worn = false;
+            try
+            {
+                var obj = Resources.Load<AvatarLayer>(l.Path)?.AvatarObjectEquivalent;
+                worn = obj != null
+                    && obj.PrimaryType == Il2CppScheduleOne.Core.Avatar.AvatarObject.EType.Worn
+                    && !obj.Id.EndsWith("underwear", StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception e)
+            {
+                Core.Log?.Warning("[appearance] could not read the clothing type of '" + l.Path + "', kept as a body layer: " + e.Message);
+            }
+            WornCache[l.Path] = worn;
+            return worn;
+        }
+
+        private static List<NpcLayer> WornClothing(List<NpcLayer> layers)
+        {
+            var worn = new List<NpcLayer>();
+            foreach (NpcLayer l in layers ?? new List<NpcLayer>())
+                if (IsWornClothing(l)) worn.Add(l);
+            return worn;
+        }
+
+        private static List<NpcLayer> WithoutWornClothing(List<NpcLayer> layers)
+        {
+            var rest = new List<NpcLayer>();
+            foreach (NpcLayer l in layers ?? new List<NpcLayer>())
+                if (!IsWornClothing(l)) rest.Add(l);
+            return rest;
         }
 
         private static void AddAccessories(List<NpcLayer> layers,
@@ -145,7 +192,7 @@ namespace Personnel.Appearance
             // Same eight-layer ceiling as the runtime path below - a ninth body layer is written to a material slot
             // that does not exist and is gone with no error, so the surplus gets dropped on purpose here too.
             var body = new List<(string path, Color tint)>();
-            foreach (NpcLayer l in a.BodyLayers ?? new List<NpcLayer>())
+            foreach (NpcLayer l in WithoutWornClothing(a.BodyLayers))
             {
                 if (l == null) continue;
                 string p = ResolvePath(def, l, face: false);
@@ -154,6 +201,7 @@ namespace Personnel.Appearance
             TrimByRank(body, AvatarLayerSlots.BodySlots, def.Id, "body");
             foreach (var (path, tint) in body) ab.WithBodyLayer(path, tint);
 
+            foreach (NpcLayer l in WornClothing(a.BodyLayers)) ab.WithAccessoryLayer(l.Path, l.Tint);
             foreach (NpcLayer l in a.Accessories)
             {
                 if (l != null && !string.IsNullOrWhiteSpace(l.Path)) ab.WithAccessoryLayer(l.Path, l.Tint);

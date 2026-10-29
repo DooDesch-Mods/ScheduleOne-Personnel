@@ -30,6 +30,28 @@ namespace Personnel.Tools
             sb.Append($" impostorTex={CustomerProbe.Safe(() => avatar._impostor._meshRenderer.sharedMaterial.mainTexture?.name ?? "<null>")}");
             sb.Append($" camDist={CustomerProbe.Safe(() => Vector3.Distance(Camera.main.transform.position, avatar.transform.position).ToString("0.0"))}");
             Log(sb.ToString());
+            Log($"avatar {id}: naked objects = {CustomerProbe.Safe(() => NakedIds(avatar))}");
+            Log($"avatar {id}: live objects = {CustomerProbe.Safe(() => LiveIds(avatar))}");
+        }
+
+        // What the appearance asked for: the ids in the applied NakedAppearance.
+        private static string NakedIds(S1Avatar avatar)
+        {
+            var naked = avatar.Appearance?.AppliedNakedAppearance;
+            if (naked == null) return "<no naked appearance>";
+            if (naked.AvatarObjects == null) return "<none>";
+            var sb = new StringBuilder();
+            foreach (var o in naked.AvatarObjects) sb.Append(o.Id).Append(' ');
+            return sb.ToString();
+        }
+
+        // What actually exists under the avatar: every AvatarObject component, with its type and active state.
+        private static string LiveIds(S1Avatar avatar)
+        {
+            var sb = new StringBuilder();
+            foreach (var o in avatar.GetComponentsInChildren<Il2CppScheduleOne.Core.Avatar.AvatarObject>(true))
+                sb.Append($"{o.Id}[{o.PrimaryType},{(o.gameObject.activeInHierarchy ? "on" : "off")}] ");
+            return sb.Length == 0 ? "<none>" : sb.ToString();
         }
 
         private static void Log(string msg) => Core.Log?.Msg(msg);
