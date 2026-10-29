@@ -72,11 +72,31 @@ namespace Personnel.Cards
         /// <summary>Installs a card PNG file (see <see cref="Import"/>).</summary>
         public static string ImportFile(string path) => ToJson(CardLibrary.ImportFile(path));
 
-        /// <summary>Installed cards as a JSON array of <c>{ code, name, role, creator, contentHash, npcId, importedAt, basedOn }</c>.</summary>
+        /// <summary>
+        /// Names the calling mod to NPC Vault: vault requests started until the scope is disposed send
+        /// "Personnel/&lt;version&gt; &lt;product&gt;" as their User-Agent. <paramref name="product"/> is one token like
+        /// "NPCCards/1.0.0". <c>using (CardsApi.Caller("NPCCards/1.0.0")) CardsApi.VaultInstall(code, done);</c>
+        /// </summary>
+        public static IDisposable Caller(string product)
+        {
+            if (string.IsNullOrWhiteSpace(product) || product.Length > 64 || product.Any(ch => ch <= ' ' || ch > '~' || ch == '(' || ch == ')'))
+            {
+                Core.Log?.Warning($"CardsApi.Caller: '{product}' is not a User-Agent product token like 'MyMod/1.0.0'; requests go out as Personnel's own.");
+                return VaultClient.CallerScope(null);
+            }
+            return VaultClient.CallerScope(product);
+        }
+
+        /// <summary>
+        /// Installed cards as a JSON array of <c>{ code, name, role, creator, contentHash, npcId, importedAt, basedOn,
+        /// source }</c>. <c>source</c> says how the card came in: "vault &lt;code&gt;", "inbox &lt;code&gt;" (sent from the
+        /// website), or a file name for the import folder.
+        /// </summary>
         public static string List() => new JArray(CardLibrary.List().Select(c => new JObject
         {
             ["code"] = c.Code, ["name"] = c.Name, ["role"] = c.Role, ["creator"] = c.Creator, ["contentHash"] = c.ContentHash,
             ["npcId"] = c.NpcId, ["importedAt"] = c.ImportedAt == default ? null : c.ImportedAt.ToString("o"), ["basedOn"] = c.BasedOn,
+            ["source"] = c.Source,
         })).ToString();
 
         public static bool Remove(string code) => CardLibrary.Remove(code);

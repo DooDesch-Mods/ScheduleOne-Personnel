@@ -39,6 +39,8 @@ namespace Personnel.Cards
         public DateTime ImportedAt;
         /// <summary>Code of the card this one remixes, or null.</summary>
         public string BasedOn;
+        /// <summary>How the card came in: "vault &lt;code&gt;", "inbox &lt;code&gt;" or the imported file's name.</summary>
+        public string Source;
     }
 
     /// <summary>
@@ -303,6 +305,7 @@ namespace Personnel.Cards
                             NpcId = e.Value<string>("id"),
                             ImportedAt = at,
                             BasedOn = ext.Value<string>("basedOn"),
+                            Source = ext.Value<string>("source"),
                         });
                     }
                 }

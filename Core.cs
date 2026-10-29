@@ -43,6 +43,8 @@ namespace Personnel
             Cards.VaultClient.Initialize();
 
             LogRosterSummary(packDefs);
+            if (packDefs == 0)
+                Log.Msg($"No NPC packs installed. Ready-made NPCs: {Cards.VaultClient.DefaultBaseUrl} (NPC Cards mod installs them in game)");
             Log.Msg($"Drop packs in: {PackLoader.PacksRoot}");
             Log.Msg("Writing a schedule? Type 'personnel help' in the dev console to grab coordinates.");
         }

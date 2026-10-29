@@ -68,11 +68,41 @@ namespace Personnel.Cards
 
         private static string TokenPath => Path.Combine(MelonEnvironment.UserDataDirectory, "Personnel", "vault.json");
 
+        private static readonly string OwnAgent = "Personnel/" + DooDesch.ModVersion.Current;
+
+        // The mod that asked for the current request ("NPCCards/1.0.0"), set by CardsApi.Caller. It flows into the
+        // worker task with the execution context, so a request started inside the scope carries it to the end.
+        private static readonly AsyncLocal<string> CallerAgent = new AsyncLocal<string>();
+
         private static HttpClient MakeClient()
         {
             var c = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
-            c.DefaultRequestHeaders.UserAgent.ParseAdd("Personnel/" + DooDesch.ModVersion.Current);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd(OwnAgent);
             return c;
+        }
+
+        /// <summary>Names the calling mod in the User-Agent of every request started until the scope is disposed.</summary>
+        internal static IDisposable CallerScope(string product)
+        {
+            string before = CallerAgent.Value;
+            CallerAgent.Value = product;
+            return new Restore(() => CallerAgent.Value = before);
+        }
+
+        private sealed class Restore : IDisposable
+        {
+            private Action _undo;
+            public Restore(Action undo) { _undo = undo; }
+            public void Dispose() { _undo?.Invoke(); _undo = null; }
+        }
+
+        /// <summary>A request whose User-Agent names the calling mod after Personnel, when one is set.</summary>
+        private static HttpRequestMessage Request(HttpMethod method, string url)
+        {
+            var req = new HttpRequestMessage(method, url);
+            string caller = CallerAgent.Value;
+            if (!string.IsNullOrEmpty(caller)) req.Headers.TryAddWithoutValidation("User-Agent", OwnAgent + " " + caller);
+            return req;
         }
 
         /// <summary>Reads the stored token and starts the inbox check. Called once from Core.</summary>
@@ -193,7 +223,7 @@ namespace Personnel.Cards
                 bool ok = false;
                 try
                 {
-                    using var req = new HttpRequestMessage(HttpMethod.Delete, BaseUrl + "/api/v1/devices/me");
+                    using var req = Request(HttpMethod.Delete, BaseUrl + "/api/v1/devices/me");
                     req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     using var res = await Http.SendAsync(req);
                     ok = res.IsSuccessStatusCode;
@@ -253,7 +283,8 @@ namespace Personnel.Cards
                 var result = new VaultUploadResult();
                 try
                 {
-                    using var req = new HttpRequestMessage(HttpMethod.Post, BaseUrl + "/api/v1/cards") { Content = new ByteArrayContent(png) };
+                    using var req = Request(HttpMethod.Post, BaseUrl + "/api/v1/cards");
+                    req.Content = new ByteArrayContent(png);
                     req.Content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
                     req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
                     using var res = await Http.SendAsync(req);
@@ -297,6 +328,8 @@ namespace Personnel.Cards
             if (Interlocked.Exchange(ref _inboxRunning, 1) == 1) return;
             Task.Run(async () =>
             {
+                // The loop outlives whichever call started it, so its requests are Personnel's own.
+                CallerAgent.Value = null;
                 Core.Log?.Msg($"NPC Vault: checking the inbox every {InboxSeconds} s.");
                 while (IsConnected)
                 {
@@ -344,7 +377,8 @@ namespace Personnel.Cards
             }
             try
             {
-                using var res = await Http.GetAsync(BaseUrl + "/c/" + code + ".png");
+                using var get = Request(HttpMethod.Get, BaseUrl + "/c/" + code + ".png");
+                using var res = await Http.SendAsync(get);
                 if (!res.IsSuccessStatusCode)
                 {
                     Core.Log?.Warning($"NPC Vault: download of {code} answered {(int)res.StatusCode}.");
@@ -371,7 +405,7 @@ namespace Personnel.Cards
 
         private static async Task<(HttpStatusCode, string)> Send(HttpMethod method, string path, JObject json, bool auth, CancellationToken ct)
         {
-            using var req = new HttpRequestMessage(method, BaseUrl + path);
+            using var req = Request(method, BaseUrl + path);
             if (json != null) req.Content = new StringContent(json.ToString(Newtonsoft.Json.Formatting.None), Encoding.UTF8, "application/json");
             if (auth) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
             using var res = await Http.SendAsync(req, ct);
