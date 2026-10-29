@@ -167,6 +167,11 @@ namespace Personnel.Cards
                 if (ext?.Value<string>("contentHash") == read.ContentHash)
                 {
                     string have = ext.Value<string>("code");
+                    if (EnsureAutoSpawn(existing, sourceName))
+                    {
+                        SaveManifest(manifest);
+                        if (_packsLoaded) PendingRestart = true;
+                    }
                     Core.Log?.Msg($"Card import '{sourceName}': '{name}' is already installed as card {have}.");
                     return new CardImportResult
                     {
@@ -199,6 +204,7 @@ namespace Personnel.Cards
             // A card holds one NPC; links to other NPCs would point at ids that do not exist here.
             if (npc["relationships"] is JObject rel && rel.Remove("connections"))
                 Core.Log?.Msg($"Card import '{sourceName}': dropped relationship connections (a card carries one NPC).");
+            EnsureAutoSpawn(npc, sourceName);
 
             string id = "card_" + code;
             npc["id"] = id;
@@ -343,6 +349,20 @@ namespace Personnel.Cards
             {
                 Core.Log?.Error($"Card drop folder '{dir}' failed: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// A card with a spawn point is a world NPC, but only cards made in Personify write <c>"auto": true</c>;
+        /// cards converted on NPC Vault leave it out, and the Cards pack has no <c>autoRegister</c>, so such an NPC
+        /// would never appear. Fills the missing key; an explicit <c>"auto": false</c> stays. Returns true if it
+        /// changed the entry.
+        /// </summary>
+        private static bool EnsureAutoSpawn(JObject npc, string sourceName)
+        {
+            if (!(npc["spawn"] is JObject spawn) || spawn["auto"] != null) return false;
+            spawn["auto"] = true;
+            Core.Log?.Msg($"Card import '{sourceName}': the spawn point has no \"auto\"; set it so the NPC joins the world.");
+            return true;
         }
 
         private static void MoveTo(string file, string folder)
