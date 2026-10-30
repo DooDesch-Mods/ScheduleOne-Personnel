@@ -48,6 +48,7 @@ namespace Personnel.Appearance
             var accList = new Il2CppSystem.Collections.Generic.List<AvatarSettings.AccessorySetting>();
 
             AddLayers(def, a.FaceLayers, faceList, face: true);
+            OrderPictures(def, a.BodyLayers);
             AddLayers(def, WithoutWornClothing(a.BodyLayers), bodyList, face: false);
             AddAccessories(WornClothing(a.BodyLayers), accList);
             AddAccessories(a.Accessories, accList);
@@ -191,6 +192,7 @@ namespace Personnel.Appearance
                 ab.WithFaceLayer(path, tint);
             // Same eight-layer ceiling as the runtime path below - a ninth body layer is written to a material slot
             // that does not exist and is gone with no error, so the surplus gets dropped on purpose here too.
+            OrderPictures(def, a.BodyLayers);
             var body = new List<(string path, Color tint)>();
             foreach (NpcLayer l in WithoutWornClothing(a.BodyLayers))
             {
@@ -254,6 +256,15 @@ namespace Personnel.Appearance
                 Core.Log?.Warning("[appearance] '" + id + "' exceeds the " + what + " layer budget, dropped " + layers[worst].path);
                 layers.RemoveAt(worst);
             }
+        }
+
+        // The game draws by each layer's order, so the worn clothing has to stay in the list for a picture to find its place.
+        private static void OrderPictures(NpcDef def, List<NpcLayer> layers)
+        {
+            var paths = new List<string>();
+            foreach (NpcLayer l in layers ?? new List<NpcLayer>())
+                if (l != null) paths.Add(ResolvePath(def, l, face: false));
+            AvatarLook.OrderCustomBodyLayers(paths);
         }
 
         // Priority: preloaded texture -> custom PNG file -> existing game layer path.
