@@ -3,6 +3,14 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.2] - 2026-10-31
+
+### Fixed
+
+- Big heads, tiny heads, missing heads and hidden faces from NPC packs now show on NPCs in the world. They worked
+  only in the editor.
+- Custom body pictures on NPCs draw in their list position again. They no longer vanish under underwear or clothing.
+
 ## [2.4.1] - 2026-10-30
 
 ### Fixed
