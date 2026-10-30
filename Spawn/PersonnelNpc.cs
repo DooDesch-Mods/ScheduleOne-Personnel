@@ -126,7 +126,11 @@ namespace Personnel
                 try
                 {
                     var avatar = gameObject.GetComponentInChildren<Avatar>(true);
-                    if (avatar != null) API.ApplyDistortion(avatar, def);
+                    if (avatar != null)
+                    {
+                        API.ApplyDistortion(avatar, def);
+                        Spawn.DistortionKeeper.Track(avatar, def);
+                    }
                     else Core.Log?.Warning($"'{def.Id}': no avatar found - body distortion skipped.");
                 }
                 catch (Exception ex)

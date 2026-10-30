@@ -51,6 +51,8 @@ namespace Personnel
 
         public override void OnUpdate() => Cards.VaultClient.Pump();
 
+        public override void OnLateUpdate() => Spawn.DistortionKeeper.LateTick();
+
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
             Testing.LaunchMarker.OnSceneInitialized(sceneName);
