@@ -17,18 +17,20 @@ namespace Personnel.Tools
     {
         internal static void Run(string filter, string action)
         {
-            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel rel <id> [dump|unlock]"); return; }
+            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel rel <id> [dump|unlock|direct]"); return; }
             S1NPC npc = FindExact(filter) ?? CustomerProbe.Find(filter, out _);
             if (npc == null) { Log($"rel: no live NPC matches '{filter}'."); return; }
 
-            if (string.Equals(action, "unlock", StringComparison.OrdinalIgnoreCase))
+            bool direct = string.Equals(action, "direct", StringComparison.OrdinalIgnoreCase);
+            if (direct || string.Equals(action, "unlock", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
-                    npc.RelationData.Unlock(S1UnlockType.Recommendation, true);
-                    Log($"rel unlock {npc.ID}: unlocked={CustomerProbe.Safe(() => npc.RelationData.Unlocked)}");
+                    // "direct" is the unlock an accepted sample gives (Customer.SampleWasSufficient).
+                    npc.RelationData.Unlock(direct ? S1UnlockType.DirectApproach : S1UnlockType.Recommendation, true);
+                    Log($"rel {action} {npc.ID}: unlocked={CustomerProbe.Safe(() => npc.RelationData.Unlocked)}");
                 }
-                catch (Exception e) { Log($"rel unlock {npc.ID}: Unlock threw {e.GetType().Name}: {e.Message}"); }
+                catch (Exception e) { Log($"rel {action} {npc.ID}: Unlock threw {e.GetType().Name}: {e.Message}"); }
                 return;
             }
             Dump(npc);
