@@ -3,6 +3,12 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.5] - 2026-10-31
+
+### Fixed
+
+- NPCs from packs no longer hang sideways in the air and stand still after you load a save from the menu.
+
 ## [2.4.4] - 2026-10-31
 
 ### Fixed
