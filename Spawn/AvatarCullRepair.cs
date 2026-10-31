@@ -78,7 +78,9 @@ namespace Personnel.Spawn
 
             if (animation._animator.enabled) return;
 
-            animation.RefreshAnimatorActive();
+            // RefreshAnimatorActive reads the avatar field, which is still empty until the animation's Awake ran. The
+            // caller knows the avatar is not culled, so the game's rule comes down to animationEnabled.
+            animation._animator.enabled = animation.animationEnabled;
             if (animation._animator.enabled)
                 Core.Log?.Msg($"'{id}': avatar spawned with the culled animator state while visible - animator restored.");
             else
