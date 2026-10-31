@@ -56,8 +56,8 @@ namespace Personnel.Testing
         }
 
         /// <summary>
-        /// Starts a detached helper that waits for this process to exit and then starts the same executable with
-        /// the same arguments, and quits the game. Returns false (and keeps running) when the helper cannot start.
+        /// Starts the same executable with the same arguments and quits the game. Returns false (and keeps running)
+        /// when the new process cannot start.
         /// </summary>
         public static bool RestartGame()
         {
@@ -72,27 +72,23 @@ namespace Personnel.Testing
                 }
                 string[] argv = Environment.GetCommandLineArgs();
                 string args = argv.Length > 1 ? string.Join(" ", argv, 1, argv.Length - 1) : "";
-                string dir = Path.GetDirectoryName(exe);
 
-                // PowerShell waits for the PID, then starts the game again. Single quotes are doubled for the
-                // PowerShell string literals; the argument list goes in as one string.
-                string Q(string s) => "'" + (s ?? "").Replace("'", "''") + "'";
-                string script = $"Wait-Process -Id {self.Id} -Timeout 180 -ErrorAction SilentlyContinue; " +
-                                $"Start-Process -FilePath {Q(exe)} -WorkingDirectory {Q(dir)}" +
-                                (args.Length > 0 ? $" -ArgumentList {Q(args)}" : "");
-                var psi = new ProcessStartInfo("powershell.exe",
-                    "-NoProfile -NonInteractive -WindowStyle Hidden -Command \"" + script.Replace("\"", "\\\"") + "\"")
+                // A direct start, because MLVScan blocks a hidden PowerShell helper on the player's machine. The new
+                // process inherits the Steam environment of this one.
+                var psi = new ProcessStartInfo
                 {
+                    FileName = exe,
+                    Arguments = args,
+                    WorkingDirectory = Path.GetDirectoryName(exe),
                     UseShellExecute = false,
-                    CreateNoWindow = true,
                 };
-                Process helper = Process.Start(psi);
-                if (helper == null)
+                Process next = Process.Start(psi);
+                if (next == null)
                 {
-                    Core.Log?.Error("restart: helper process did not start.");
+                    Core.Log?.Error("restart: the new game process did not start.");
                     return false;
                 }
-                Core.Log?.Msg($"restart: helper pid {helper.Id} waits for pid {self.Id}, then starts '{exe}' {args}");
+                Core.Log?.Msg($"restart: pid {next.Id} started from pid {self.Id}: '{exe}' {args}");
                 Application.Quit();
                 return true;
             }
