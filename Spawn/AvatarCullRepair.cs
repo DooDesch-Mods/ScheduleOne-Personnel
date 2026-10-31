@@ -7,11 +7,11 @@ using Avatar = Il2CppScheduleOne.AvatarFramework.Avatar;
 namespace Personnel.Spawn
 {
     /// <summary>
-    /// Repairs an NPC avatar that spawns with its body hidden and the flat impostor billboard shown while it is not
-    /// culled. The game's culling loop (<c>Avatar.UpdateAnimationActive</c>) only toggles body and impostor when
-    /// <c>IsCulled</c> changes, so a clone that copies the culled GameObject state of its source but starts with
-    /// <c>IsCulled = false</c> stays a grey silhouette until the camera leaves and re-enters its range. This happens
-    /// on the second save load in one game session.
+    /// Repairs an NPC avatar that spawns with its body hidden, the flat impostor billboard shown and its animator off
+    /// while it is not culled. The game's culling loop (<c>Avatar.UpdateAnimationActive</c>) only toggles them when
+    /// <c>IsCulled</c> changes, so a clone that copies the culled state of its source but starts with
+    /// <c>IsCulled = false</c> stays a grey silhouette or floats in its bind pose until the camera leaves and re-enters
+    /// its range. This happens on the second save load in one game session.
     /// </summary>
     internal static class AvatarCullRepair
     {
@@ -47,9 +47,13 @@ namespace Personnel.Spawn
                     return;
                 }
 
+                if (avatar.IsCulled) return;
+
+                RestoreAnimator(avatar, id);
+
                 // SetVisible(false) (entering a building) hides the body without showing the impostor, so an active
                 // impostor on an unculled avatar can only be left over from a copied culling state.
-                if (avatar.IsCulled || body.gameObject.activeSelf || !impostor.gameObject.activeSelf) return;
+                if (body.gameObject.activeSelf || !impostor.gameObject.activeSelf) return;
 
                 body.gameObject.SetActive(true);
                 impostor.Disable();
@@ -59,6 +63,26 @@ namespace Personnel.Spawn
             {
                 Core.Log?.Error($"'{id}': avatar culling repair failed ({ex.Message}).");
             }
+        }
+
+        // The game only re-evaluates the animator when IsCulled changes, so a disabled animator copied with the
+        // culled state leaves the rig lying flat in its bind pose, even though the body is shown again.
+        private static void RestoreAnimator(Avatar avatar, string id)
+        {
+            var animation = avatar.Animation;
+            if (animation == null || animation._animator == null)
+            {
+                Core.Log?.Warning($"'{id}': avatar has no animator - animator check skipped.");
+                return;
+            }
+
+            if (animation._animator.enabled) return;
+
+            animation.RefreshAnimatorActive();
+            if (animation._animator.enabled)
+                Core.Log?.Msg($"'{id}': avatar spawned with the culled animator state while visible - animator restored.");
+            else
+                Core.Log?.Msg($"'{id}': animator stays off, the game has animation disabled for this avatar.");
         }
     }
 }
