@@ -235,8 +235,6 @@ namespace Personnel.Cards
             };
         }
 
-        // Layer files in a card are "layers/<name>.png"; in the pack they live under "<code>/layers/". A layer that
-        // points anywhere else (an absolute path, a missing file) is dropped, so a card can only use what it carries.
         // A converted card goes by its original author. A remix keeps that credit but is the remixer's work.
         private static string AuthorOf(JObject meta)
         {
@@ -245,6 +243,8 @@ namespace Personnel.Cards
             return !remix && !string.IsNullOrEmpty(author) ? author : meta?.Value<string>("creator");
         }
 
+        // Layer files in a card are "layers/<name>.png"; in the pack they live under "<code>/layers/". A layer that
+        // points anywhere else (an absolute path, a missing file) is dropped, so a card can only use what it carries.
         private static void RewriteLayerFiles(JArray layers, string code, CardContents c, string sourceName)
         {
             if (layers == null) return;
