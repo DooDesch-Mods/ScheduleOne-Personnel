@@ -214,7 +214,7 @@ namespace Personnel.Cards
             {
                 ["code"] = code,
                 ["contentHash"] = read.ContentHash,
-                ["creator"] = meta?.Value<string>("creator"),
+                ["creator"] = AuthorOf(meta),
                 ["basedOn"] = meta?["basedOn"]?.Type == JTokenType.Object ? meta["basedOn"].Value<string>("code") : null,
                 ["importedAt"] = DateTime.UtcNow.ToString("o"),
                 ["source"] = sourceName,
@@ -233,6 +233,14 @@ namespace Personnel.Cards
                 Ok = true, Replaced = previous != null, Code = code, Name = name, NpcId = id,
                 Message = previous != null ? $"{name} was updated." : $"{name} was added.",
             };
+        }
+
+        // A converted card goes by its original author. A remix keeps that credit but is the remixer's work.
+        private static string AuthorOf(JObject meta)
+        {
+            string author = meta?["credit"]?.Type == JTokenType.Object ? meta["credit"].Value<string>("author")?.Trim() : null;
+            bool remix = meta?["basedOn"]?.Type == JTokenType.Object;
+            return !remix && !string.IsNullOrEmpty(author) ? author : meta?.Value<string>("creator");
         }
 
         // Layer files in a card are "layers/<name>.png"; in the pack they live under "<code>/layers/". A layer that
