@@ -3,6 +3,13 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.3] - 2026-10-31
+
+### Fixed
+
+- Installed cards converted from another mod now list their original author. Cards installed earlier show it after
+  the next install.
+
 ## [2.4.2] - 2026-10-31
 
 ### Fixed
