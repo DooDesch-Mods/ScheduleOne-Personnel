@@ -3,6 +3,13 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.4] - 2026-10-31
+
+### Fixed
+
+- Personnel loads with MLVScan again. MLVScan 2.1.7 disabled it for a hidden PowerShell window behind Personify's Test
+  button, which also took Personify and NPC Cards down.
+
 ## [2.4.3] - 2026-10-31
 
 ### Fixed
