@@ -188,3 +188,5 @@ Full NPCs ride entirely on S1API's prefab/networking machinery via `PersonnelNpc
 ## License
 
 DooDesch API License - build on the API, do not copy the code. See [LICENSE.md](LICENSE.md).
+
+This mod is written with help from generative AI tools (Anthropic Claude, OpenAI Codex).
