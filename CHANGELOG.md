@@ -3,6 +3,13 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.6] - 2026-11-01
+
+### Fixed
+
+- NPCs stop throwing errors when a schedule sends them into a building they cannot enter, like the Pawn Shop. The
+  step is skipped and named in the log.
+
 ## [2.4.5] - 2026-10-31
 
 ### Fixed
