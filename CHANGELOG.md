@@ -3,6 +3,19 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.5.0] - 2026-11-02
+
+### Added
+
+- A pack NPC with `"police": {}` joins the police station as one more officer. The game assigns patrols,
+  checkpoints and chases; `spawn` and `schedule` are ignored.
+- A police belt is added when the look has none. Everything else in the look stays.
+
+### Known issues
+
+- From far away the officer shows a vanilla officer's picture until you come closer.
+- In co-op, host and clients need the same pack.
+
 ## [2.4.6] - 2026-11-01
 
 ### Fixed
