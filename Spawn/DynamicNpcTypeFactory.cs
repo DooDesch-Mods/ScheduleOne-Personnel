@@ -42,8 +42,16 @@ namespace Personnel.Spawn
 
             var wanted = new List<NpcDef>();
             foreach (NpcDef def in allDefs)
-                if (def?.Spawn != null && def.Spawn.Auto && !_emittedIds.Contains(def.Id))
-                    wanted.Add(def);
+            {
+                if (def?.Spawn == null || !def.Spawn.Auto || _emittedIds.Contains(def.Id)) continue;
+                if (def.Police != null)
+                {
+                    // S1API can only build a civilian; Police.PoliceRoster builds the officer instead.
+                    Core.Log?.Msg($"auto-register: '{def.Id}' is police, the police station takes it.");
+                    continue;
+                }
+                wanted.Add(def);
+            }
             if (wanted.Count == 0) return 0;
 
             // Deterministic emission order across machines/sessions: FishNet spawnable registration is

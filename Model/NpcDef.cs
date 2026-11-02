@@ -52,6 +52,9 @@ namespace Personnel.Model
         /// <summary>Supplier role data; null = not a supplier.</summary>
         public NpcSupplier Supplier;
 
+        /// <summary>Police role data; null = not an officer. Presence adds one officer to the police station.</summary>
+        public NpcPolice Police;
+
         /// <summary>Absolute path of the phone contact picture, or null.</summary>
         public string PortraitPath;
         /// <summary>Own dialogue lines; null = vanilla lines only.</summary>

@@ -53,10 +53,13 @@ namespace Personnel
 
         public override void OnLateUpdate() => Spawn.DistortionKeeper.LateTick();
 
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName) => Police.PoliceRoster.OnSceneLoaded(sceneName);
+
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
             Testing.LaunchMarker.OnSceneInitialized(sceneName);
             Testing.NpcCatalog.OnSceneInitialized(sceneName);
+            Police.PoliceRoster.OnSceneInitialized(sceneName);
 #if DEBUG
             if (sceneName == "Main")
                 MelonCoroutines.Start(DiagnoseAfterLoad());
@@ -117,7 +120,7 @@ namespace Personnel
 
         private static void LogRosterSummary(int packDefs)
         {
-            int physical = 0, contacts = 0, customers = 0, dealers = 0, scheduled = 0, auto = 0;
+            int physical = 0, contacts = 0, customers = 0, dealers = 0, police = 0, scheduled = 0, auto = 0;
             foreach (var def in NpcRegistry.AllDefs)
             {
                 bool hasSchedule = def.Schedule != null && def.Schedule.Count > 0;
@@ -125,11 +128,12 @@ namespace Personnel
                 string role = API.ResolveRole(def);
                 if (role == "customer") customers++;
                 else if (role == "dealer") dealers++;
+                else if (role == "police") police++;
                 if (hasSchedule) scheduled++;
                 if (def.Spawn?.Auto == true) auto++;
             }
             Log.Msg($"Personnel {Instance.Info.Version} - {packDefs} NPC def(s) from packs ({NpcRegistry.AllDefs.Count} total): " +
-                    $"{physical} physical / {contacts} contact-only, {customers} customer(s), {dealers} dealer(s), " +
+                    $"{physical} physical / {contacts} contact-only, {customers} customer(s), {dealers} dealer(s), {police} police, " +
                     $"{scheduled} with schedules, {auto} auto-registered.");
         }
     }

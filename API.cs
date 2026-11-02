@@ -186,9 +186,9 @@ namespace Personnel
         }
 
         /// <summary>
-        /// Effective economy role of a definition: a dealer{} block wins over a supplier{} block, which wins over a
-        /// customer{} block, which wins over the legacy behavior.conversation shorthand. Returns "dealer",
-        /// "supplier", "customer" or null.
+        /// Effective role of a definition: a dealer{} block wins over a supplier{} block, which wins over a police{}
+        /// block, which wins over a customer{} block, which wins over the legacy behavior.conversation shorthand.
+        /// Returns "dealer", "supplier", "police", "customer" or null.
         /// </summary>
         internal static string ResolveRole(NpcDef def)
         {
@@ -208,6 +208,12 @@ namespace Personnel
                 if (def.Customer != null || legacyCustomer)
                     Core.Log?.Warning($"'{def.Id}': has both supplier and customer data - supplier wins (an NPC can only be one).");
                 return "supplier";
+            }
+            if (def.Police != null)
+            {
+                if (def.Customer != null || legacyCustomer)
+                    Core.Log?.Warning($"'{def.Id}': has both police and customer data - police wins (an NPC can only be one).");
+                return "police";
             }
             if (def.Customer != null)
             {

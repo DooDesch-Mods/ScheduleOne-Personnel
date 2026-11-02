@@ -115,6 +115,7 @@ namespace Personnel.Content
                 Customer = BuildCustomer(packName, display, e.customer),
                 Dealer = BuildDealer(e.dealer),
                 Supplier = BuildSupplier(e.supplier),
+                Police = e.police != null ? new NpcPolice() : null,
                 PortraitPath = ResolvePortrait(packName, packDir, display, e.portrait),
                 Lines = BuildLines(display, e.lines),
                 Inventory = BuildInventory(packName, display, e.inventory),

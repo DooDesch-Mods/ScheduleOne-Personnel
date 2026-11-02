@@ -73,6 +73,11 @@ namespace Personnel.Model
     }
 
     /// <summary>One startup inventory item (id + count).</summary>
+    /// <summary>Police role marker (see <c>PoliceJson</c>). An officer takes its duties from the police station.</summary>
+    public sealed class NpcPolice
+    {
+    }
+
     /// <summary>Supplier role data (see <c>SupplierJson</c>).</summary>
     public sealed class NpcSupplier
     {
