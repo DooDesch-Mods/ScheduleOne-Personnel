@@ -20,7 +20,7 @@
 
 - **NPC mods without code.** A pack's `manifest.json` can carry everything: spawn point and region,
   a daily schedule (walk routes, buildings, seats, vending machines, slot machines, dialogue spots,
-  car trips), customer or dealer economy, inventory, relationships and contact presentation. Set
+  car trips), customer, dealer or supplier economy, a police officer role, inventory, relationships and contact presentation. Set
   `"autoRegister": true` and Personnel spawns the NPCs as real world NPCs on its own.
 - **Real S1API NPCs, not props** - prefab, networking, save/load and mugshot handled by S1API, the
   same machinery hand-coded NPC mods use.
