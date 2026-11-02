@@ -45,6 +45,8 @@ namespace Personnel.Content
         public DealerJson dealer;
         /// <summary>Supplier role (schemaVersion 3): order limits, delivery assortment, unlock texts.</summary>
         public SupplierJson supplier;
+        /// <summary>Police role: an empty object adds this NPC as one more officer of the police station.</summary>
+        public PoliceJson police;
         public InventoryJson inventory;
         public List<ScheduleActionJson> schedule;
 
@@ -211,6 +213,11 @@ namespace Personnel.Content
         public string completedDealsVariable;
         public bool? allowInsufficientQuality;
         public bool? allowExcessQuality;
+    }
+
+    /// <summary>Police block. Empty today: the police station hands out the duties, the NPC only needs a look.</summary>
+    public sealed class PoliceJson
+    {
     }
 
     /// <summary>

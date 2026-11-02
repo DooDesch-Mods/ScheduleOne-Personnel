@@ -86,6 +86,11 @@ namespace Personnel.Tools
                     case "rel": RelationProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "line": RelationProbe.Line(Arg(p, 2), Arg(p, 3), Arg(p, 4)); break;
                     case "supplier": SupplierProbe.Run(Arg(p, 2), Arg(p, 3), Arg(p, 4), Arg(p, 5)); break;
+                    case "police":
+                        if (Arg(p, 2) == "dispatch") Police.PoliceRoster.Dispatch(Log);
+                        else if (Arg(p, 2) == "pursue") Police.PoliceRoster.Pursue(Log);
+                        else Police.PoliceRoster.Report(Log);
+                        break;
                     case "restart":
                         if (int.TryParse(Arg(p, 2), out int slot) && Testing.LaunchMarker.Write(slot, Arg(p, 3)))
                             Testing.LaunchMarker.RestartGame();

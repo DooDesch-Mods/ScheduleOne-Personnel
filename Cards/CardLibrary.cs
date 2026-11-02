@@ -85,11 +85,12 @@ namespace Personnel.Cards
             return new string(bytes.Select(b => CodeAlphabet[b % CodeAlphabet.Length]).ToArray());
         }
 
-        /// <summary>Role by the vault's rule: dealer, supplier, customer block, else townsfolk.</summary>
+        /// <summary>Role by the vault's rule: dealer, supplier, police, customer block, else townsfolk.</summary>
         public static string RoleOf(JObject npc)
         {
             if (npc?["dealer"] is JObject) return "dealer";
             if (npc?["supplier"] is JObject) return "supplier";
+            if (npc?["police"] is JObject) return "police";
             if (npc?["customer"] is JObject) return "customer";
             return "townsfolk";
         }
