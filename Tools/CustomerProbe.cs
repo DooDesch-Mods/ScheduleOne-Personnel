@@ -9,7 +9,7 @@ using S1NPC = Il2CppScheduleOne.NPCs.NPC;
 namespace Personnel.Tools
 {
     /// <summary>
-    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net]</c>.
+    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|lock|lockregion|unlockregion|close]</c>.
     /// <c>bring</c> warps the NPC next to the local player, <c>dump</c> (default) logs the customer and behaviour
     /// state the vanilla sale flow depends on, so a stuck sale can be read from the log instead of a screen.
     /// </summary>
@@ -17,7 +17,7 @@ namespace Personnel.Tools
     {
         internal static void Run(string filter, string action)
         {
-            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net]"); return; }
+            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|lock|lockregion|unlockregion|close]"); return; }
             S1NPC npc = Find(filter, out string id);
             if (npc == null) { Log($"cust: no live NPC matches '{filter}'."); return; }
 
@@ -35,6 +35,31 @@ namespace Personnel.Tools
                 case "rearm": Rearm(npc, id); break;
                 case "rpcs": Rpcs(npc, id); break;
                 case "ident": Ident(npc, id); break;
+                case "sample": Sample(npc, id, true); break;
+                case "sampleopen": Sample(npc, id, false); break;
+                case "choose": Choose(npc, id); break;
+                case "screen": Screen(npc, id, "screen"); break;
+                case "lock":
+                    // Puts a customer back to the locked start state, for a locked vanilla control in a played save.
+                    try { npc.RelationData.Unlocked = false; } catch (Exception e) { Log($"cust lock {id}: threw {e.GetType().Name}: {e.Message}"); }
+                    Log($"cust lock {id}: unlocked={Safe(() => npc.RelationData.Unlocked)}");
+                    break;
+                case "lockregion":
+                case "unlockregion":
+                    // Locks or unlocks the NPC's region, the early-game state where only Northtown is open.
+                    try
+                    {
+                        var data = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.Map.Map>.Instance.GetRegionData(npc.Region);
+                        data.IsUnlocked = action.ToLowerInvariant() == "unlockregion";
+                        Log($"cust {action.ToLowerInvariant()} {id}: region {npc.Region} unlocked={data.IsUnlocked}");
+                    }
+                    catch (Exception e) { Log($"cust {action} {id}: threw {e.GetType().Name}: {e.Message}"); }
+                    break;
+                case "close":
+                    var open = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.Handover.HandoverScreen>.Instance;
+                    if (open != null && open.IsOpen) open.Close();
+                    Log($"cust close {id}: handoverOpen={Safe(() => open.IsOpen)}");
+                    break;
                 default: Dump(npc, id); break;
             }
         }
@@ -236,6 +261,80 @@ namespace Personnel.Tools
             catch (Exception e) { Log($"cust offer {id}: InstantDealOffered threw {e.GetType().Name}: {e.Message}"); }
             var hs = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.Handover.HandoverScreen>.Instance;
             Log($"cust offer {id}: handoverOpen={Safe(() => hs.IsOpen)} pendingInstantDeal={Safe(() => c.pendingInstantDeal)}");
+        }
+
+        // The gates of the free-sample choice (Customer.ShowDirectApproachOption, Customer.SampleOptionValid), the
+        // connections behind IsMutuallyKnown, then the choice itself (Customer.SampleOffered) and the state of the
+        // handover screen it should open: active mode, main container and the customer slot UIs.
+        private static void Sample(S1NPC npc, string id, bool close)
+        {
+            S1Customer c = npc.GetComponent<S1Customer>();
+            if (c == null) { Log($"cust sample {id}: customer MISSING"); return; }
+            var rd = npc.RelationData;
+            var conns = new StringBuilder();
+            try
+            {
+                for (int i = 0; i < rd.Connections.Count; i++)
+                {
+                    var n = rd.Connections[i];
+                    conns.Append($" {Safe(() => n.ID)}(unlocked={Safe(() => n.RelationData.Unlocked)})");
+                }
+            }
+            catch (Exception e) { conns.Append($" ERR({e.GetType().Name})"); }
+            Log($"cust sample {id}: unlocked={Safe(() => rd.Unlocked)} mutuallyKnown={Safe(() => rd.IsMutuallyKnown())} " +
+                $"connections={Safe(() => rd.Connections.Count)}:{conns} region={Safe(() => npc.Region)} " +
+                $"directApproach={Safe(() => c.CustomerData.CanBeDirectlyApproached)} showSample={Safe(() => c.ShowDirectApproachOption(true))} " +
+                $"sampleValid={Safe(() => { bool ok = c.SampleOptionValid(out string why); return ok + (ok ? "" : "(" + why + ")"); })} " +
+                $"requestChance={Safe(() => c.GetSampleRequestSuccessChance())} awaitingSample={Safe(() => c.awaitingSample)} " +
+                $"orderedDrugTypes={Safe(() => c.GetOrderedDrugTypes().Count)} preferredProps={Safe(() => c.CustomerData.PreferredProperties.Count)}");
+
+            // The dialogue offers the choice only when both gates pass; anything else would roll a rejection (and a
+            // police call) that no player could trigger.
+            bool shown = false, valid = false;
+            try { shown = rd.Unlocked ? false : c.CustomerData.CanBeDirectlyApproached && !c.IsAwaitingDelivery; valid = c.SampleOptionValid(out _); }
+            catch (Exception e) { Log($"cust sample {id}: gate read threw {e.GetType().Name}: {e.Message}"); }
+            if (!shown || !valid) { Log($"cust sample {id}: not offered (choice shown={shown}, valid={valid})."); return; }
+
+            var hs = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.Handover.HandoverScreen>.Instance;
+            try { c.SampleOffered(); }
+            catch (Exception e) { Log($"cust sample {id}: SampleOffered threw {e.GetType().Name}: {e.Message}\n{e.StackTrace}"); }
+            Screen(npc, id, "sample");
+            if (close && hs.IsOpen)
+            {
+                hs.Close();
+                Log($"cust sample {id}: closed the handover screen, handoverOpen={Safe(() => hs.IsOpen)}");
+            }
+        }
+
+        // The handover screen as the player sees it: open, active mode, main container and the customer slot UIs.
+        private static void Screen(S1NPC npc, string id, string label)
+        {
+            S1Customer c = npc.GetComponent<S1Customer>();
+            var hs = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.Handover.HandoverScreen>.Instance;
+            int activeSlots = 0, slotUis = 0;
+            try
+            {
+                var uis = hs._customerSlotUIs;
+                slotUis = uis.Length;
+                for (int i = 0; i < uis.Length; i++) if (uis[i] != null && uis[i].gameObject.activeInHierarchy) activeSlots++;
+            }
+            catch (Exception e) { Log($"cust {label} {id}: slot read threw {e.GetType().Name}"); }
+            var canvas = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.DialogueCanvas>.Instance;
+            Log($"cust {label} {id}: handoverOpen={Safe(() => hs.IsOpen)} mode={Safe(() => hs._activeMode != null ? hs._activeMode.GetIl2CppType().Name : "none")} " +
+                $"mainContainer={Safe(() => hs._mainContainer.activeInHierarchy)} customerSlots={activeSlots}/{slotUis} awaitingSample={Safe(() => c.awaitingSample)} " +
+                $"dialogueOpen={Safe(() => canvas.IsOpen)} dialogueBehaviour={Safe(() => npc.Behaviour.GenericDialogueBehaviour.Enabled)}");
+        }
+
+        // Picks the first choice of the open dialogue through DialogueCanvas.ChoiceSelected, the method the choice
+        // button calls, after closing the phone if it covers the dialogue. Read the result a moment later with "screen".
+        private static void Choose(S1NPC npc, string id)
+        {
+            var phone = Il2CppScheduleOne.DevUtilities.PlayerSingleton<Il2CppScheduleOne.UI.Phone.Phone>.Instance;
+            if (phone != null && phone.IsOpen) { phone.SetIsOpen(false); Log($"cust choose {id}: closed the phone."); }
+            var canvas = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.DialogueCanvas>.Instance;
+            if (canvas == null || !canvas.IsOpen) { Log($"cust choose {id}: no dialogue open (run talk first)."); return; }
+            try { canvas.ChoiceSelected(0); Log($"cust choose {id}: selected choice 0."); }
+            catch (Exception e) { Log($"cust choose {id}: ChoiceSelected threw {e.GetType().Name}: {e.Message}\n{e.StackTrace}"); }
         }
 
         // Packages the first product in the player's inventory, puts it into the open handover screen and presses
