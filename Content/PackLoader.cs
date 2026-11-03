@@ -42,11 +42,17 @@ namespace Personnel.Content
 
             foreach (string packDir in packDirs)
             {
+                string packName = new DirectoryInfo(packDir).Name;
+                if (IsParked(packName))
+                {
+                    Core.Log?.Msg($"Pack '{packName}': parked ({ParkedSuffix}) - skipped.");
+                    continue;
+                }
+
                 string manifestPath = Path.Combine(packDir, "manifest.json");
                 if (!File.Exists(manifestPath))
                     continue;
 
-                string packName = new DirectoryInfo(packDir).Name;
                 try
                 {
                     NpcPackManifest manifest = JsonConvert.DeserializeObject<NpcPackManifest>(File.ReadAllText(manifestPath));
@@ -77,6 +83,15 @@ namespace Personnel.Content
 
             return defs;
         }
+
+        /// <summary>
+        /// Folder suffix that parks a pack: <c>Packs/&lt;pack&gt;.parked-perf</c> stays on disk but does not load.
+        /// Renaming the folder back re-enables it on the next start.
+        /// </summary>
+        public const string ParkedSuffix = ".parked-perf";
+
+        public static bool IsParked(string packName) =>
+            packName != null && packName.EndsWith(ParkedSuffix, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>Highest manifest schemaVersion this loader understands.</summary>
         public const int SchemaVersion = 3;
@@ -542,6 +557,7 @@ Folder layout:
     MyPack/
       manifest.json
       grin.png            (optional custom layer texture)
+    OldPack.parked-perf/  (parked: stays on disk, does not load)
 
 manifest.json:
 {

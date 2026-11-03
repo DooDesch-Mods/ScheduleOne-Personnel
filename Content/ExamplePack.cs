@@ -28,6 +28,13 @@ namespace Personnel.Content
             string dir = Path.Combine(PackLoader.PacksRoot, "Examples");
             try
             {
+                // A parked copy means the user switched the example pack off; writing a fresh one would undo that.
+                if (Directory.Exists(dir + PackLoader.ParkedSuffix) && !Directory.Exists(dir))
+                {
+                    Core.Log?.Msg($"Example pack is parked ({PackLoader.ParkedSuffix}) - not writing a new one.");
+                    return;
+                }
+
                 string manifest = Path.Combine(dir, "manifest.json");
                 if (File.Exists(manifest))
                 {
