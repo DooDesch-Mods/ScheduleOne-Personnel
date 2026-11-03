@@ -148,6 +148,11 @@ namespace Personnel
                 if (Parse.TryParseEnum(def.Spawn.Region, out S1API.Map.Region region)) Region = region;
                 else Core.Log?.Warning($"'{def.Id}': unknown spawn.region '{def.Spawn.Region}' - ignored.");
             }
+            else
+            {
+                try { if (Spawn.RegionDefault.Resolve(gameObject, def) is S1API.Map.Region home) Region = home; }
+                catch (Exception ex) { Core.Log?.Error($"'{def.Id}': taking the region from the NPC's position failed ({ex.Message})."); }
+            }
 
             // Behaviour stats are runtime state, not prefab config - applied here per instance.
             if (def.Behavior != null)
