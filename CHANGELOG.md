@@ -3,6 +3,14 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.5.3] - 2026-11-03
+
+### Fixed
+
+- The free sample of a locked pack customer is no longer greyed out in early game. Without a set region they counted
+  as Downtown; now they take the region they live in.
+- Packs renamed to `<name>.parked-perf` in the Packs folder no longer load. Rename them back to turn them on.
+
 ## [2.5.2] - 2026-11-03
 
 ### Fixed
