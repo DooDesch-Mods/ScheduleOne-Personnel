@@ -14,7 +14,7 @@
 ![Type](https://img.shields.io/badge/type-library%2Fdependency-lightgrey)
 [![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
-[![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_rjOSV6ua4ZMsNWvMl8QnUrXk/badge.svg)](https://mlvscan.com/attestations/att_rjOSV6ua4ZMsNWvMl8QnUrXk)
+[![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_SHX-E7z5PKdjEc-_ZFcHXPBC/badge.svg)](https://mlvscan.com/attestations/att_SHX-E7z5PKdjEc-_ZFcHXPBC)
 
 ![A pack NPC next to the car he drove across town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/header.jpg)
 
