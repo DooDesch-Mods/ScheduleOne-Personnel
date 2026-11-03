@@ -3,6 +3,13 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.5.2] - 2026-11-03
+
+### Fixed
+
+- In co-op, clients can complete scheduled deals with pack customers. Before, the customer never offered the handover
+  on a client. Host and clients need 2.5.2.
+
 ## [2.5.1] - 2026-11-02
 
 ### Changed
