@@ -112,6 +112,8 @@ namespace Personnel
         {
             base.OnCreated();
             Spawn.AvatarCullRepair.Watch(gameObject, DefId);
+            try { Spawn.BehaviourOwnerRepair.Apply(gameObject, DefId); }
+            catch (Exception ex) { Core.Log?.Error($"'{DefId}': repairing behaviour owners failed ({ex.Message})."); }
             if (!API.TryGet(DefId, out NpcDef def) || def == null)
             {
                 API.AddMapMarker(gameObject);

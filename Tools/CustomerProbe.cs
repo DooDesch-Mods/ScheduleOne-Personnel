@@ -9,7 +9,7 @@ using S1NPC = Il2CppScheduleOne.NPCs.NPC;
 namespace Personnel.Tools
 {
     /// <summary>
-    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done]</c>.
+    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net]</c>.
     /// <c>bring</c> warps the NPC next to the local player, <c>dump</c> (default) logs the customer and behaviour
     /// state the vanilla sale flow depends on, so a stuck sale can be read from the log instead of a screen.
     /// </summary>
@@ -17,7 +17,7 @@ namespace Personnel.Tools
     {
         internal static void Run(string filter, string action)
         {
-            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done]"); return; }
+            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net]"); return; }
             S1NPC npc = Find(filter, out string id);
             if (npc == null) { Log($"cust: no live NPC matches '{filter}'."); return; }
 
@@ -27,8 +27,189 @@ namespace Personnel.Tools
                 case "checks": Checks(npc, id); break;
                 case "offer": Offer(npc, id); break;
                 case "done": Done(npc, id); break;
+                case "deal": Deal(npc, id); break;
+                case "hand": Hand(npc, id); break;
+                case "talk": Talk(npc, id); break;
+                case "net": Net(npc, id); break;
+                case "watch": Watch(npc, id); break;
+                case "rearm": Rearm(npc, id); break;
+                case "rpcs": Rpcs(npc, id); break;
+                case "ident": Ident(npc, id); break;
                 default: Dump(npc, id); break;
             }
+        }
+
+        // Logs every enable and disable of the attend-deal behaviour on this machine, so a client shows whether the
+        // host's Enable/Disable RPC arrived at all.
+        private static void Watch(S1NPC npc, string id)
+        {
+            var attend = npc.GetComponent<S1Customer>()?._attendDealBehaviour;
+            if (attend == null) { Log($"cust watch {id}: attend behaviour MISSING"); return; }
+            attend.onEnable.AddListener((Action)(() => Log($"cust watch {id}: attend ENABLED at frame {Time.frameCount}")));
+            attend.onDisable.AddListener((Action)(() => Log($"cust watch {id}: attend DISABLED at frame {Time.frameCount}\n{Environment.StackTrace}")));
+            npc.Behaviour.DEBUG_MODE = true;
+            Log($"cust watch {id}: listening, enabled={Safe(() => attend.Enabled)}");
+        }
+
+        // Sizes of FishNet's RPC tables on the NPCBehaviour and Customer components, plus the observers of the NPC on
+        // the host. An empty observers-RPC table on a client drops every behaviour RPC without a log line.
+        private static void Rpcs(S1NPC npc, string id)
+        {
+            var no = npc.NetworkObject;
+            Log($"cust rpcs {id}: server={Il2CppFishNet.InstanceFinder.IsServer} observers={Safe(() => { var o = no.GetType().GetProperty("Observers")?.GetValue(no); return o?.GetType().GetProperty("Count")?.GetValue(o); })}");
+            DumpRpcTables(id, "NPCBehaviour", npc.Behaviour);
+            DumpRpcTables(id, "Customer", npc.GetComponent<S1Customer>());
+            DumpRpcTables(id, "AttendDeal", npc.GetComponent<S1Customer>()?._attendDealBehaviour);
+        }
+
+        private static void DumpRpcTables(string id, string label, Il2CppFishNet.Object.NetworkBehaviour nb)
+        {
+            if (nb == null) { Log($"  {label}: MISSING"); return; }
+            var sb = new StringBuilder($"  {label}:");
+            foreach (var p in typeof(Il2CppFishNet.Object.NetworkBehaviour).GetProperties(
+                         System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+            {
+                if ((p.Name.IndexOf("rpc", StringComparison.OrdinalIgnoreCase) < 0 && p.Name.IndexOf("Excuted", StringComparison.Ordinal) < 0) || p.GetIndexParameters().Length > 0) continue;
+                string value;
+                try
+                {
+                    object v = p.GetValue(nb);
+                    var countProp = v?.GetType().GetProperty("Count");
+                    value = v == null ? "null" : countProp != null ? "count=" + countProp.GetValue(v) : v.ToString();
+                }
+                catch (Exception ex) { value = "ERR " + (ex.InnerException ?? ex).GetType().Name; }
+                sb.Append($" {p.Name}={value}");
+            }
+            Log(sb.ToString());
+        }
+
+        // Whether the behaviour stack entry an RPC enables is the same object the Customer reads, and how many
+        // NPCBehaviour and attend-deal components the NPC carries.
+        private static void Ident(S1NPC npc, string id)
+        {
+            var attend = npc.GetComponent<S1Customer>()?._attendDealBehaviour;
+            var beh = npc.Behaviour;
+            int idx = attend != null ? attend.BehaviourIndex : -1;
+            var stack = beh?.behaviourStack;
+            var entry = stack != null && idx >= 0 && idx < stack.Count ? stack[idx] : null;
+            Log($"cust ident {id}: server={Il2CppFishNet.InstanceFinder.IsServer} idx={idx} stackCount={stack?.Count} " +
+                $"entry={Safe(() => entry.Name)} entry.ptr={entry?.Pointer} attend.ptr={attend?.Pointer} same={(entry != null && attend != null && entry.Pointer == attend.Pointer)} " +
+                $"entry.enabled={Safe(() => entry.Enabled)} attend.enabled={Safe(() => attend.Enabled)} entry.npcBeh={Safe(() => entry.beh?.Pointer == beh.Pointer)}");
+            var owner = attend?.beh;
+            Log($"  attend.beh ptr={owner?.Pointer} npc={Safe(() => owner.Npc?.ID)} go={Safe(() => owner.gameObject.name)} root={Safe(() => owner.transform.root.name)} active={Safe(() => owner.gameObject.activeInHierarchy)} scene={Safe(() => owner.gameObject.scene.name)} attend.customer={(attend?._customer != null ? "set" : "null")}");
+            int foreign = 0;
+            if (stack != null)
+                for (int i = 0; i < stack.Count; i++)
+                    if (stack[i] != null && stack[i].beh?.Pointer != beh.Pointer) { foreign++; Log($"  stack[{i}] {Safe(() => stack[i].Name)} beh foreign ptr={stack[i].beh?.Pointer}"); }
+            Log($"  stack entries with a foreign owner: {foreign}");
+            var behs = npc.GetComponentsInChildren<Il2CppScheduleOne.NPCs.Behaviour.NPCBehaviour>(true);
+            foreach (var b in behs)
+                Log($"  NPCBehaviour id={b.GetInstanceID()} ptr={b.Pointer} go={b.gameObject.name} isNpcBehaviour={b.Pointer == beh?.Pointer} compIdx={Safe(() => b.ComponentIndex)} stack={b.behaviourStack?.Count}");
+            var attends = npc.GetComponentsInChildren<Il2CppScheduleOne.NPCs.Behaviour.CustomerAttendDealBehaviour>(true);
+            foreach (var a in attends)
+                Log($"  attend id={a.GetInstanceID()} ptr={a.Pointer} go={a.gameObject.name} isCustomers={a.Pointer == attend?.Pointer} behIdx={a.BehaviourIndex} enabled={Safe(() => a.Enabled)} compIdx={Safe(() => a.ComponentIndex)}");
+        }
+
+        // Host only: sends the attend-deal behaviour's Disable and Enable RPCs again.
+        private static void Rearm(S1NPC npc, string id)
+        {
+            var attend = npc.GetComponent<S1Customer>()?._attendDealBehaviour;
+            if (attend == null) { Log($"cust rearm {id}: attend behaviour MISSING"); return; }
+            if (!Il2CppFishNet.InstanceFinder.IsServer) { Log($"cust rearm {id}: host only."); return; }
+            attend.Disable_Server();
+            attend.Enable_Server();
+            Log($"cust rearm {id}: sent disable+enable for index {attend.BehaviourIndex}");
+        }
+
+        // The FishNet view of the NPC: every NetworkBehaviour the NetworkObject registered, with the ComponentIndex an
+        // RPC is routed by, plus the NPCBehaviour and the attend-deal behaviour. Host and client must list the same
+        // types at the same indices, or an ObserversRpc lands on another component.
+        private static void Net(S1NPC npc, string id)
+        {
+            var no = npc.NetworkObject;
+            if (no == null) { Log($"cust net {id}: NetworkObject MISSING"); return; }
+            var beh = npc.Behaviour;
+            var attend = npc.GetComponent<S1Customer>()?._attendDealBehaviour;
+            Log($"cust net {id}: server={Il2CppFishNet.InstanceFinder.IsServer} objectId={Safe(() => no.ObjectId)} prefabId={Safe(() => no.PrefabId)} " +
+                $"spawned={Safe(() => no.IsSpawned)} npcBehaviour.idx={Safe(() => beh.ComponentIndex)} npcBehaviour.client={Safe(() => beh.IsClientInitialized)} " +
+                $"attend.idx={Safe(() => attend.ComponentIndex)} attend.client={Safe(() => attend.IsClientInitialized)} attend.server={Safe(() => attend.IsServerInitialized)} " +
+                $"attend.no={Safe(() => attend.NetworkObject == no)} attend.go={Safe(() => attend.gameObject.name)}");
+            var list = no.NetworkBehaviours;
+            int count = list?.Length ?? -1;
+            Log($"  registered={count} inChildren={Safe(() => npc.GetComponentsInChildren<Il2CppFishNet.Object.NetworkBehaviour>(true).Length)}");
+            var sb = new StringBuilder("  nb:");
+            for (int i = 0; i < count; i++)
+            {
+                var b = list[i];
+                if (b == null) { sb.Append($" [{i}]null"); continue; }
+                sb.Append($" [{i}]{Safe(() => b.ComponentIndex)}:{b.GetIl2CppType().Name}{(Safe(() => b.IsClientInitialized) == "True" ? "" : "!c")}");
+            }
+            Log(sb.ToString());
+        }
+
+        // Host only: the scheduled-deal path without the phone. ForceDealOffer generates and offers a contract the way
+        // the daily roll does, ContractAccepted then accepts it for the deal window the game clock is in, so the
+        // customer starts walking to the drop at once.
+        private static void Deal(S1NPC npc, string id)
+        {
+            S1Customer c = npc.GetComponent<S1Customer>();
+            if (c == null) { Log($"cust deal {id}: customer MISSING"); return; }
+            if (!Il2CppFishNet.InstanceFinder.IsServer) { Log($"cust deal {id}: host only."); return; }
+            if (c.CurrentContract != null) { Log($"cust deal {id}: already has a contract."); Hand(npc, id); return; }
+            try { c.ForceDealOffer(); }
+            catch (Exception e) { Log($"cust deal {id}: ForceDealOffer threw {e.GetType().Name}: {e.Message}"); return; }
+            if (c.OfferedContractInfo == null) { Log($"cust deal {id}: no contract generated (no listed product or a dealer took it)."); return; }
+
+            int now = Il2CppScheduleOne.DevUtilities.NetworkSingleton<Il2CppScheduleOne.GameTime.TimeManager>.Instance.CurrentTime;
+            var window = now >= 600 && now < 1200 ? Il2CppScheduleOne.Economy.EDealWindow.Morning
+                : now >= 1200 && now < 1800 ? Il2CppScheduleOne.Economy.EDealWindow.Afternoon
+                : now >= 1800 ? Il2CppScheduleOne.Economy.EDealWindow.Night
+                : Il2CppScheduleOne.Economy.EDealWindow.LateNight;
+            Il2CppScheduleOne.Quests.Contract contract = null;
+            try { contract = c.ContractAccepted(window, true, null); }
+            catch (Exception e) { Log($"cust deal {id}: ContractAccepted threw {e.GetType().Name}: {e.Message}"); return; }
+            Log($"cust deal {id}: contract={(contract != null)} window={window} at {now} " +
+                $"location={Safe(() => contract.DeliveryLocation.LocationName)} stand={Safe(() => contract.DeliveryLocation.CustomerStandPoint.position)}");
+        }
+
+        // The two gates of the "[Complete Deal]" choice (Customer.IsReadyForHandover, Customer.IsHandoverChoiceValid)
+        // and the state behind them, readable on host and client alike.
+        private static void Hand(S1NPC npc, string id)
+        {
+            S1Customer c = npc.GetComponent<S1Customer>();
+            if (c == null) { Log($"cust hand {id}: customer MISSING"); return; }
+            var attend = c._attendDealBehaviour;
+            Log($"cust hand {id}: server={Il2CppFishNet.InstanceFinder.IsServer} contract={Safe(() => c.CurrentContract != null)} " +
+                $"awaitingDelivery={Safe(() => c.IsAwaitingDelivery)} readyForHandover={Safe(() => c.IsReadyForHandover(true))} " +
+                $"handoverValid={Safe(() => { bool ok = c.IsHandoverChoiceValid(out string why); return ok + (ok ? "" : "(" + why + ")"); })} " +
+                $"attend.enabled={Safe(() => attend.Enabled)} attend.active={Safe(() => attend.Active)} attend.index={Safe(() => attend.BehaviourIndex)} " +
+                $"attend.contract={Safe(() => attend._contract != null)} active={Safe(() => npc.Behaviour.activeBehaviour != null ? npc.Behaviour.activeBehaviour.Name : "none")} " +
+                $"dist={Safe(() => Vector3.Distance(npc.transform.position, c.CurrentContract.DeliveryLocation.CustomerStandPoint.position))} " +
+                $"contracts={Safe(() => Il2CppScheduleOne.Quests.Contract.Contracts.Count)}");
+            var stack = npc.Behaviour?.behaviourStack;
+            if (stack == null) { Log("  behaviourStack MISSING"); return; }
+            var sb = new StringBuilder("  stack:");
+            for (int i = 0; i < stack.Count; i++) sb.Append($" [{i}]{Safe(() => stack[i].Name)}");
+            Log(sb.ToString());
+        }
+
+        // Opens the NPC's dialogue the way pressing E does (DialogueController.Interacted) and logs the choices it
+        // would offer, so the client's view of a deal can be read from the log.
+        private static void Talk(S1NPC npc, string id)
+        {
+            var dc = npc.DialogueHandler?.GetComponent<Il2CppScheduleOne.Dialogue.DialogueController>();
+            if (dc == null) { Log($"cust talk {id}: DialogueController MISSING"); return; }
+            var sb = new StringBuilder($"cust talk {id}: canStart={Safe(() => dc.CanStartDialogue())} choices:");
+            try
+            {
+                var choices = dc.GetActiveChoices();
+                for (int i = 0; i < choices.Count; i++) sb.Append($" '{Safe(() => choices[i].ChoiceText)}'");
+                if (choices.Count == 0) sb.Append(" none (greeting only)");
+            }
+            catch (Exception e) { sb.Append($" ERR({e.GetType().Name}: {e.Message})"); }
+            Log(sb.ToString());
+            try { dc.Interacted(); }
+            catch (Exception e) { Log($"cust talk {id}: Interacted threw {e.GetType().Name}: {e.Message}"); }
         }
 
         // The reads HandoverScreenCustomerInfoPanel.Open and the "You wanna buy something?" choice depend on.
