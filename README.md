@@ -2,8 +2,10 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
+**Download:** [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2275) · [Thunderstore](https://thunderstore.io/c/schedule-i/p/DooDesch/Personnel/) · [GitHub Releases](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/releases)
+
 > The NPC framework for Schedule I. Personnel lets anyone ship custom NPCs as simple pack folders -
-> designed in [Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify) or written by hand -
+> designed in [Personify](https://www.nexusmods.com/schedule1/mods/2276) or written by hand -
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world
 > as if the mod author had built them in code. Built on [S1API](https://github.com/ifBars/S1API).
 
@@ -27,7 +29,7 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 - 📖 **[Documentation](https://docs.doodesch.de/mods/personnel/)** - the full guide: pack
   format and id rules, the API (spawning real S1API NPCs), custom PNG layer authoring, multiplayer,
   troubleshooting.
-- 🧩 **[Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify)** - the in-game editor that
+- 🧩 **[Personify](https://www.nexusmods.com/schedule1/mods/2276)** - the in-game editor that
   designs and exports these packs.
 
 ## Features
@@ -46,7 +48,7 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
   ones that should walk the world are physical. Big packs stay fast, also on Steam Deck.
 - **NPC packs are plain folders** - a `manifest.json` plus optional PNGs under
   `UserData/Personnel/Packs/<PackName>/`. Design them live in-game with
-  [Personify](https://github.com/DooDesch-Mods/ScheduleOne-Personify).
+  [Personify](https://www.nexusmods.com/schedule1/mods/2276).
 - **Coordinates from the console.** The game shows none, so `personnel pos 07:30` gives you a
   finished `walkTo` action for the spot you are standing on, `personnel spawn` a full spawn block,
   and `personnel route` collects a whole day's route. Everything lands on your clipboard.
@@ -69,8 +71,16 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 
 ## Installation
 
-### Recommended: a Thunderstore mod manager
-Install with r2modman / Gale from the Schedule I community; the dependencies (MelonLoader, S1API) are
+### Recommended: Nexus Mods
+
+1. Install **MelonLoader 0.7.3** for Schedule I ([melonwiki.xyz](https://melonwiki.xyz/)).
+2. Install **S1API** from its [Thunderstore page](https://thunderstore.io/c/schedule-i/p/ifBars/S1API_Forked/).
+3. Download Personnel from [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2275) and install it with Vortex,
+   or put **`Personnel.dll`** into your Schedule I `Mods/` folder.
+4. Install any NPC pack or NPC mod that lists Personnel as a dependency.
+
+### Thunderstore mod manager
+Install from the [Thunderstore page](https://thunderstore.io/c/schedule-i/p/DooDesch/Personnel/) with r2modman / Gale; the dependencies (MelonLoader, S1API) are
 pulled in automatically. Then install any NPC pack or NPC mod that lists Personnel as a dependency.
 
 ### Manual
