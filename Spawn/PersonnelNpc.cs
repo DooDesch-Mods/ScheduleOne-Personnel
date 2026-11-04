@@ -174,6 +174,9 @@ namespace Personnel
                 try { Spawn.DoorlessStayGuard.Apply(gameObject, def.Id); }
                 catch (Exception ex) { Core.Log?.Error($"'{def.Id}': checking stay-in-building doors failed ({ex.Message})."); }
 
+                try { Spawn.ScheduleRefGuard.Apply(def); }
+                catch (Exception ex) { Core.Log?.Error($"'{def.Id}': checking schedule seats and buildings failed ({ex.Message})."); }
+
                 try { Schedule.Enable(); }
                 catch (Exception ex) { Core.Log?.Warning($"'{def.Id}': Schedule.Enable failed ({ex.Message})."); }
             }
