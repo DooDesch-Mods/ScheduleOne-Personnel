@@ -2,6 +2,8 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
+[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de)
+
 > **The NPC framework for Schedule I.** NPC packs are plain folders - spawn points, daily schedules,
 > customer/dealer economy, relationships, contacts - and Personnel spawns them as real S1API NPCs:
 > networked, saved, walking their routines. Since 2.0, no mod code needed at all.
@@ -76,6 +78,12 @@ Full pack format, API reference and examples on
 - `EnableAutoRegister` (default `true`) - kill switch for pack auto-registration.
 
 Editable in `UserData/MelonPreferences.cfg`.
+
+## Community
+
+[![DooDesch Mods on Discord](https://mods.doodesch.de/img/card.svg)](https://mods.doodesch.de)
+
+Join the DooDesch Mods Discord: update pings, polls on what comes next, and playtests of new mods.
 
 ## License
 
