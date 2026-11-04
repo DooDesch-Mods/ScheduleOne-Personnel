@@ -3,6 +3,13 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.5.4] - 2026-11-04
+
+### Fixed
+
+- A schedule step whose seat or building the game doesn't have now logs a warning with the NPC and the path. Before,
+  the NPC just stood still and the log said nothing.
+
 ## [2.5.3] - 2026-11-03
 
 ### Fixed
