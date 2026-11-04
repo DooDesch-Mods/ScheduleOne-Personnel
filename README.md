@@ -4,8 +4,6 @@
 
 **Download:** [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2275) · [Thunderstore](https://thunderstore.io/c/schedule-i/p/DooDesch/Personnel/) · [GitHub Releases](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/releases)
 
-[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de)
-
 > The NPC framework for Schedule I. Personnel lets anyone ship custom NPCs as simple pack folders -
 > designed in [Personify](https://www.nexusmods.com/schedule1/mods/2276) or written by hand -
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world
@@ -16,7 +14,7 @@
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 ![Type](https://img.shields.io/badge/type-library%2Fdependency-lightgrey)
-[![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
+[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de) [![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
 [![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_XM-M-c6qZnC902I9zShPmcwh/badge.svg)](https://mlvscan.com/attestations/att_XM-M-c6qZnC902I9zShPmcwh)
 

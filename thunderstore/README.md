@@ -2,8 +2,6 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
-[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de)
-
 > **The NPC framework for Schedule I.** NPC packs are plain folders - spawn points, daily schedules,
 > customer/dealer economy, relationships, contacts - and Personnel spawns them as real S1API NPCs:
 > networked, saved, walking their routines. Since 2.0, no mod code needed at all.
@@ -12,7 +10,7 @@
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
-[![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
+[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de) [![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
 [![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_XM-M-c6qZnC902I9zShPmcwh/badge.svg)](https://mlvscan.com/attestations/att_XM-M-c6qZnC902I9zShPmcwh)
 
