@@ -3,6 +3,20 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.6.1] - 2026-11-05
+
+### Fixed
+
+- Pack NPCs no longer cancel their own route every frame, which flooded the log with "NPC walk to location not
+  successful" and made every NPC in town wait longer for a path.
+- NPCs without a body (`spawn.physical: false`) no longer run their schedule. They walked off the map and filled the
+  log with "NPC is not on navmesh".
+
+### For mod authors
+
+- A `walkTo` position off walkable ground makes the NPC stop short and retry every frame. Put schedule points on
+  paths and floors that town NPCs can reach.
+
 ## [2.6.0] - 2026-11-05
 
 ### Added
