@@ -41,6 +41,8 @@ namespace Personnel.Cards
         public string BasedOn;
         /// <summary>How the card came in: "vault &lt;code&gt;", "inbox &lt;code&gt;" or the imported file's name.</summary>
         public string Source;
+        /// <summary>Vanilla NPC id this card takes over, or null when it adds a new NPC.</summary>
+        public string Replaces;
     }
 
     /// <summary>
@@ -222,6 +224,13 @@ namespace Personnel.Cards
             };
             npc["extensions"] = extensions;
 
+            // The vanilla NPC a card takes over is the player's choice, not part of the card: a newer version keeps it.
+            npc.Remove("replaces");
+            if (previous?.Value<string>("replaces") is string target && target.Length > 0)
+            {
+                npc["replaces"] = target;
+                Core.Log?.Msg($"Card import '{sourceName}': the update keeps replacing '{target}'.");
+            }
             if (previous != null) previous.Replace(npc);
             else npcs.Add(npc);
             SaveManifest(manifest);
@@ -297,6 +306,167 @@ namespace Personnel.Cards
             }
         }
 
+        /// <summary>One NPC entry on disk that takes over a vanilla NPC.</summary>
+        public sealed class ReplacementEntry
+        {
+            public string Target;
+            public string Pack;
+            public string NpcId;
+            public string Name;
+            /// <summary>Card code when the entry is an installed card, else null.</summary>
+            public string Code;
+        }
+
+        /// <summary>
+        /// Points an installed card at a vanilla NPC (<paramref name="vanillaId"/>) or back to a new NPC (null). The
+        /// choice lives in the Cards pack manifest only, so the card file stays neutral. Any other entry in any pack
+        /// that replaces the same vanilla NPC loses its <c>replaces</c> (one replacement per vanilla NPC); those are
+        /// returned in <paramref name="superseded"/>. Returns an error text, or null on success.
+        /// </summary>
+        public static string SetReplacement(string code, string vanillaId, out List<ReplacementEntry> superseded)
+        {
+            superseded = new List<ReplacementEntry>();
+            vanillaId = string.IsNullOrWhiteSpace(vanillaId) ? null : vanillaId.Trim();
+            if (vanillaId != null && global::Personnel.Replacements.ReplacementRules.BlockReason(vanillaId) is string why)
+            {
+                Core.Log?.Warning($"Card target: '{vanillaId}' is {why} and cannot be replaced.");
+                return "blocked";
+            }
+            try
+            {
+                lock (Gate)
+                {
+                    JObject manifest = LoadManifest();
+                    JObject entry = ((JArray)manifest["npcs"]).OfType<JObject>().FirstOrDefault(e => (e["extensions"]?[ExtensionKey] as JObject)?.Value<string>("code") == code);
+                    if (entry == null)
+                    {
+                        Core.Log?.Warning($"Card target: no installed card with code '{code}'.");
+                        return "not_found";
+                    }
+                    string before = entry.Value<string>("replaces");
+                    if (string.Equals(before, vanillaId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Core.Log?.Msg($"Card target: card {code} already {(vanillaId == null ? "adds a new NPC" : "replaces " + vanillaId)}.");
+                        return null;
+                    }
+                    if (vanillaId != null) entry["replaces"] = vanillaId;
+                    else entry.Remove("replaces");
+                    manifest["schemaVersion"] = PackLoader.SchemaVersion;
+                    SaveManifest(manifest);
+                    if (vanillaId != null) superseded = ReleaseTargetLocked(vanillaId, PackFolder, entry.Value<string>("id"));
+                    if (_packsLoaded) PendingRestart = true;
+                    Core.Log?.Msg($"Card target: card {code} ('{entry.Value<string>("name")}') now {(vanillaId == null ? "adds a new NPC" : "replaces " + vanillaId)}" +
+                                  (superseded.Count > 0 ? $"; released {string.Join(", ", superseded.Select(s => s.Pack + "/" + s.NpcId))}." : "."));
+                }
+                RaiseChanged();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Core.Log?.Error($"Card target for '{code}' failed: {ex}");
+                return "failed";
+            }
+        }
+
+        /// <summary>
+        /// Takes <paramref name="vanillaId"/> away from every pack entry except <paramref name="keepPack"/>/<paramref name="keepId"/>.
+        /// Personify calls this before it installs a project that replaces the NPC. Returns the entries it changed.
+        /// </summary>
+        public static List<ReplacementEntry> ReleaseTarget(string vanillaId, string keepPack, string keepId)
+        {
+            try
+            {
+                lock (Gate) return ReleaseTargetLocked(vanillaId, keepPack, keepId);
+            }
+            catch (Exception ex)
+            {
+                Core.Log?.Error($"Releasing replacement target '{vanillaId}' failed: {ex}");
+                return new List<ReplacementEntry>();
+            }
+        }
+
+        private static List<ReplacementEntry> ReleaseTargetLocked(string vanillaId, string keepPack, string keepId)
+        {
+            var changed = new List<ReplacementEntry>();
+            foreach (var (pack, path, manifest) in PackManifests())
+            {
+                bool dirty = false;
+                foreach (JObject e in ((manifest["npcs"] as JArray) ?? new JArray()).OfType<JObject>())
+                {
+                    if (!string.Equals(e.Value<string>("replaces"), vanillaId, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (string.Equals(pack, keepPack, StringComparison.OrdinalIgnoreCase) && string.Equals(e.Value<string>("id"), keepId, StringComparison.OrdinalIgnoreCase)) continue;
+                    e.Remove("replaces");
+                    dirty = true;
+                    changed.Add(new ReplacementEntry
+                    {
+                        Target = vanillaId, Pack = pack, NpcId = e.Value<string>("id"), Name = e.Value<string>("name"),
+                        Code = (e["extensions"]?[ExtensionKey] as JObject)?.Value<string>("code"),
+                    });
+                }
+                if (!dirty) continue;
+                WriteAtomic(path, manifest.ToString(Formatting.Indented));
+                Core.Log?.Msg($"Replacement of '{vanillaId}': pack '{pack}' no longer replaces it.");
+            }
+            if (changed.Count > 0 && _packsLoaded) PendingRestart = true;
+            return changed;
+        }
+
+        /// <summary>Every pack entry on disk that replaces a vanilla NPC (parked packs excluded).</summary>
+        public static List<ReplacementEntry> Replacements()
+        {
+            var list = new List<ReplacementEntry>();
+            try
+            {
+                lock (Gate)
+                {
+                    foreach (var (pack, _, manifest) in PackManifests())
+                        foreach (JObject e in ((manifest["npcs"] as JArray) ?? new JArray()).OfType<JObject>())
+                        {
+                            string target = e.Value<string>("replaces");
+                            if (string.IsNullOrWhiteSpace(target)) continue;
+                            list.Add(new ReplacementEntry
+                            {
+                                Target = target.Trim(), Pack = pack, NpcId = e.Value<string>("id"), Name = e.Value<string>("name"),
+                                Code = (e["extensions"]?[ExtensionKey] as JObject)?.Value<string>("code"),
+                            });
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                Core.Log?.Error($"Listing replacements failed: {ex.Message}");
+            }
+            return list;
+        }
+
+        // Every loadable pack's manifest, in load order. A manifest that does not parse is logged and skipped.
+        private static IEnumerable<(string pack, string path, JObject manifest)> PackManifests()
+        {
+            string root = PackLoader.PacksRoot;
+            if (!Directory.Exists(root)) yield break;
+            string[] dirs = Directory.GetDirectories(root);
+            Array.Sort(dirs, StringComparer.OrdinalIgnoreCase);
+            foreach (string dir in dirs)
+            {
+                string pack = Path.GetFileName(dir);
+                if (PackLoader.IsParked(pack)) continue;
+                string path = Path.Combine(dir, "manifest.json");
+                if (!File.Exists(path)) continue;
+                JObject manifest = null;
+                try { manifest = JObject.Parse(File.ReadAllText(path)); }
+                catch (Exception ex) { Core.Log?.Warning($"Replacements: pack '{pack}' manifest is unreadable ({ex.Message}) - skipped."); }
+                if (manifest != null) yield return (pack, path, manifest);
+            }
+        }
+
+        private static void WriteAtomic(string path, string text)
+        {
+            string temp = path + ".tmp";
+            File.WriteAllText(temp, text);
+            if (File.Exists(path)) File.Replace(temp, path, null);
+            else File.Move(temp, path);
+        }
+
         /// <summary>Every installed card, in manifest order.</summary>
         public static List<InstalledCard> List()
         {
@@ -321,6 +491,7 @@ namespace Personnel.Cards
                             ImportedAt = at,
                             BasedOn = ext.Value<string>("basedOn"),
                             Source = ext.Value<string>("source"),
+                            Replaces = e.Value<string>("replaces"),
                         });
                     }
                 }

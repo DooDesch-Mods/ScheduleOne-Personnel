@@ -86,6 +86,7 @@ namespace Personnel.Testing
         {
             var cat = new Catalog { gameVersion = Application.version, writtenUtc = DateTime.UtcNow };
             int skipped = 0;
+            var vanilla = new List<S1NPC>();
             try
             {
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -94,6 +95,7 @@ namespace Personnel.Testing
                 {
                     if (n == null || string.IsNullOrWhiteSpace(n.ID) || !seen.Add(n.ID)) { skipped++; continue; }
                     string name = ((n.FirstName ?? "") + " " + (n.LastName ?? "")).Trim();
+                    if (!NpcRegistry.TryGet(n.ID, out _) && !modIds.Contains(n.ID)) vanilla.Add(n);
                     cat.npcs.Add(new Entry
                     {
                         id = n.ID,
@@ -118,7 +120,7 @@ namespace Personnel.Testing
                 Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
                 File.WriteAllText(FilePath, JsonConvert.SerializeObject(cat, Formatting.Indented));
                 Core.Log?.Msg($"npc catalog: {cat.npcs.Count} NPC(s) written to {FilePath} ({skipped} skipped: empty or duplicate id).");
-                return true;
+                return TemplateCatalog.Write(vanilla);
             }
             catch (Exception e)
             {

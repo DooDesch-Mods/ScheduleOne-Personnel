@@ -31,6 +31,15 @@ namespace Personnel.Model
         public List<string> Connections;
     }
 
+    /// <summary>Voice of an NPC: the voice set of a vanilla NPC (<see cref="From"/>, its id) and a pitch.</summary>
+    public sealed class NpcVoice
+    {
+        /// <summary>Id of the vanilla NPC whose voice lines are used. Null = the NPC's own.</summary>
+        public string From;
+        /// <summary>Pitch 0.1..4. Null = the pitch of <see cref="From"/>, or the NPC's own.</summary>
+        public float? Pitch;
+    }
+
     /// <summary>An inclusive float range (e.g. weekly spending).</summary>
     public sealed class NpcRange
     {

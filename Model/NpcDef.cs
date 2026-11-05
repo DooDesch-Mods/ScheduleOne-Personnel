@@ -31,6 +31,12 @@ namespace Personnel.Model
         /// </summary>
         public string SaveId;
 
+        /// <summary>Vanilla NPC id this definition takes over, or null for a new NPC (see <c>NpcEntry.replaces</c>).</summary>
+        public string Replaces;
+
+        /// <summary>Optional voice (another NPC's voice set and a pitch). Null = the NPC keeps its own voice.</summary>
+        public NpcVoice Voice;
+
         /// <summary>Optional S1API-expressible behaviour. May be null.</summary>
         public NpcBehavior Behavior;
 
