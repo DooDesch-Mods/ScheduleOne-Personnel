@@ -3,6 +3,22 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.6.0] - 2026-11-05
+
+### Added
+
+- A pack NPC can replace a town NPC (customer, dealer, supplier, police, townsfolk). It takes the new look, clothing,
+  voice and role values and keeps its name, routine, home and contacts.
+- Remove the pack and the town NPC is back to normal. Story NPCs can't be replaced. In co-op all players need the
+  same packs.
+
+### For mod authors
+
+- Manifest `schemaVersion: 4` adds `"replaces": "<town NPC id>"`. One replacement per NPC; with two, the first pack
+  in folder order wins and the log names the other.
+- `UserData/Personify/World/templates.json` lists the town NPCs as templates, written on every save load.
+- `CardsApi.SetReplacement` points an installed card at a town NPC or back to a new NPC.
+
 ## [2.5.4] - 2026-11-04
 
 ### Fixed
