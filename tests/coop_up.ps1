@@ -9,7 +9,10 @@
 # tests/coop_down.ps1 reads to remove them again.
 param(
     [ValidateSet('stack', 'main')]
-    [string]$Profile = 'stack'
+    [string]$Profile = 'stack',
+    # Folder with Mods\S1API.Il2Cpp.MelonLoader.dll and Plugins\S1APILoader.MelonLoader.dll, copied over the stack's
+    # S1API in both slots before the host restarts. For a check against an S1API release the catalog does not pin yet.
+    [string]$S1Api = ''
 )
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..\..')
@@ -69,15 +72,27 @@ Stop-Slot $client.root
 
 # Profile main: duo.ps1 laid out the save and the lease; now both slots get the real installation's mods with this build
 # on top (and LocalLobby for --host/--join), and the host restarts into the same save.
-if ($Profile -eq 'main') {
+if ($Profile -eq 'main' -or $S1Api) {
     . (Join-Path $root 'Workspace\tools\slots\stack.lib.ps1')
     $hostName = @($lease.slots)[0]
     Stop-Slot $hostRoot
     Start-Sleep -Seconds 4
     $table = Get-StackSlotTable
-    $src = Resolve-StackSource $worktree
-    $stack = Compose-MainProfile $table['main'].root @{ $src.Mod = $src.Dir } 'Debug' @('LocalLobby')
-    foreach ($name in @($hostName, $clientName)) { Apply-Stack $name $table[$name] $stack; Write-Host "applied profile main to $name" }
+    if ($Profile -eq 'main') {
+        $src = Resolve-StackSource $worktree
+        $stack = Compose-MainProfile $table['main'].root @{ $src.Mod = $src.Dir } 'Debug' @('LocalLobby')
+        foreach ($name in @($hostName, $clientName)) { Apply-Stack $name $table[$name] $stack; Write-Host "applied profile main to $name" }
+    }
+    if ($S1Api) {
+        foreach ($slotRoot in @($hostRoot, $client.root)) {
+            foreach ($rel in @('Mods\S1API.Il2Cpp.MelonLoader.dll', 'Plugins\S1APILoader.MelonLoader.dll')) {
+                $from = Join-Path $S1Api $rel
+                if (-not (Test-Path -LiteralPath $from)) { Write-Host "FAIL S1API override: $from is missing"; exit 1 }
+                Copy-Item -LiteralPath $from -Destination (Join-Path $slotRoot $rel) -Force
+                Write-Host "S1API override: $rel -> $slotRoot ($((Get-FileHash -LiteralPath $from).Hash.Substring(0, 12)))"
+            }
+        }
+    }
     $hostProcess = Start-Process -FilePath (Join-Path $hostRoot 'Schedule I.exe') -ArgumentList @('--host', '--autoload', '--saveslot', '4') -WorkingDirectory $hostRoot -PassThru
     if (-not (Wait-Health $lease.table.$hostName.port { param($h) $h.scene -eq 'Main' -and $h.inGame -and -not $h.loading } $hostProcess)) {
         Write-Host 'host did not reach the world'; exit 1

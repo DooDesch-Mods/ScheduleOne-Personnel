@@ -9,7 +9,7 @@ using S1NPC = Il2CppScheduleOne.NPCs.NPC;
 namespace Personnel.Tools
 {
     /// <summary>
-    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|lock|lockregion|unlockregion|close]</c>.
+    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|guarantee|stock|lock|lockregion|unlockregion|close]</c>.
     /// <c>bring</c> warps the NPC next to the local player, <c>dump</c> (default) logs the customer and behaviour
     /// state the vanilla sale flow depends on, so a stuck sale can be read from the log instead of a screen.
     /// </summary>
@@ -17,7 +17,7 @@ namespace Personnel.Tools
     {
         internal static void Run(string filter, string action)
         {
-            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|lock|lockregion|unlockregion|close]"); return; }
+            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|guarantee|stock|lock|lockregion|unlockregion|close]"); return; }
             S1NPC npc = Find(filter, out string id);
             if (npc == null) { Log($"cust: no live NPC matches '{filter}'."); return; }
 
@@ -54,6 +54,26 @@ namespace Personnel.Tools
                         Log($"cust {action.ToLowerInvariant()} {id}: region {npc.Region} unlocked={data.IsUnlocked}");
                     }
                     catch (Exception e) { Log($"cust {action} {id}: threw {e.GetType().Name}: {e.Message}"); }
+                    break;
+                case "guarantee":
+                    // Makes the next free sample succeed (CustomerData.GuaranteeFirstSampleSuccess), so a test does not
+                    // depend on the acceptance roll. Run it on the host, which rolls.
+                    try { npc.GetComponent<S1Customer>().CustomerData.GuaranteeFirstSampleSuccess = true; }
+                    catch (Exception e) { Log($"cust guarantee {id}: threw {e.GetType().Name}: {e.Message}"); }
+                    Log($"cust guarantee {id}: guaranteeFirstSample={Safe(() => npc.GetComponent<S1Customer>().CustomerData.GuaranteeFirstSampleSuccess)}");
+                    break;
+                case "stock":
+                    // Puts 5 OG Kush into the local inventory. The vanilla `give` runs only on the host, so a co-op
+                    // client needs this to have something to hand over.
+                    try
+                    {
+                        var inv = Il2CppScheduleOne.DevUtilities.PlayerSingleton<Il2CppScheduleOne.PlayerScripts.PlayerInventory>.Instance;
+                        var def = Il2CppScheduleOne.Registry.GetItem("ogkush");
+                        if (inv == null || def == null) { Log($"cust stock {id}: inventory={inv != null} ogkush={def != null}, nothing added."); break; }
+                        inv.AddItemToInventory(def.GetDefaultInstance(5));
+                        Log($"cust stock {id}: added ogkush x5");
+                    }
+                    catch (Exception e) { Log($"cust stock {id}: threw {e.GetType().Name}: {e.Message}"); }
                     break;
                 case "close":
                     var open = Il2CppScheduleOne.DevUtilities.Singleton<Il2CppScheduleOne.UI.Handover.HandoverScreen>.Instance;
