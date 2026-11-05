@@ -49,7 +49,13 @@ namespace Personnel
             Log.Msg("Writing a schedule? Type 'personnel help' in the dev console to grab coordinates.");
         }
 
-        public override void OnUpdate() => Cards.VaultClient.Pump();
+        public override void OnUpdate()
+        {
+            Cards.VaultClient.Pump();
+#if DEBUG
+            Spawn.WalkRequestGuard.ReportWalkResults();
+#endif
+        }
 
         public override void OnLateUpdate() => Spawn.DistortionKeeper.LateTick();
 
