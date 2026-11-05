@@ -58,6 +58,7 @@ namespace Personnel
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
             Testing.LaunchMarker.OnSceneInitialized(sceneName);
+            Replacements.VanillaReplacer.OnSceneInitialized(sceneName);
             Testing.NpcCatalog.OnSceneInitialized(sceneName);
             Police.PoliceRoster.OnSceneInitialized(sceneName);
 #if DEBUG

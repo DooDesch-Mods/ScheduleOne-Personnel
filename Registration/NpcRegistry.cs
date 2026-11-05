@@ -49,7 +49,18 @@ namespace Personnel.Registration
         }
 
         /// <summary>Scan the packs folder and add every definition found. Returns the number newly added.</summary>
-        public static int LoadPacks() => AddRange(PackLoader.LoadAll());
+        /// <remarks>
+        /// Definitions that take over a vanilla NPC go to <see cref="Replacements.ReplacementRegistry"/> instead: they
+        /// add no NPC, so nothing that spawns or lists definitions may see them.
+        /// </remarks>
+        public static int LoadPacks()
+        {
+            var fresh = new List<NpcDef>();
+            var replacing = new List<NpcDef>();
+            foreach (NpcDef d in PackLoader.LoadAll()) (d.Replaces != null ? replacing : fresh).Add(d);
+            Replacements.ReplacementRegistry.Set(replacing);
+            return AddRange(fresh);
+        }
 
         /// <summary>Drop all pack-sourced defs, rescan the packs folder, and fire <see cref="OnReloaded"/>.</summary>
         public static void Reload()

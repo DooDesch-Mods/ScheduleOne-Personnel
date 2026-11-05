@@ -24,6 +24,10 @@
   `"autoRegister": true` and Personnel spawns the NPCs as real world NPCs on its own.
 - **Real S1API NPCs, not props** - prefab, networking, save/load and mugshot handled by S1API, the
   same machinery hand-coded NPC mods use.
+- **Replace a town NPC.** A pack entry with `"replaces": "benji_coleman"` gives that town NPC its
+  look, clothing, voice and role values; name, routine, home, contacts and save data stay. Works for
+  customers, dealers, suppliers, police and townsfolk, not for story NPCs. Remove the pack and the
+  NPC is back to normal.
 - **Physical or contact-only.** Most roster NPCs can stay phone contacts (near-zero cost); only the
   ones that should walk the world are physical. Big packs stay fast, also on Steam Deck.
 - Deep appearance: body, skin, hair, face, eyes, eyebrows, clothing, accessories and custom PNG
@@ -34,6 +38,8 @@
 - Stable, save-safe NPC ids with rename escape hatches (`packId`, `saveId`).
 
 ## Screenshots
+
+![Benji Coleman replaced by a pack](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/replace-after.jpg)
 
 ![A pack NPC driving his own car through town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/driving.jpg)
 

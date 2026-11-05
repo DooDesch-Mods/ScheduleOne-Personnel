@@ -12,7 +12,7 @@ namespace Personnel.Content
         public string name;
         public string author;
 
-        /// <summary>Manifest schema version this pack was authored against. Current: 3. Omitted = 1.</summary>
+        /// <summary>Manifest schema version this pack was authored against. Current: 4. Omitted = 1.</summary>
         public int? schemaVersion;
 
         /// <summary>Stable pack identity used to derive NPC ids. Defaults to the pack folder name, so setting
@@ -35,6 +35,16 @@ namespace Personnel.Content
         /// <summary>Save-identity override: the id S1API persists. Set this to the OLD id after renaming an
         /// NPC (or its pack) so existing saves keep matching. Defaults to the NPC's id.</summary>
         public string saveId;
+
+        /// <summary>
+        /// Vanilla NPC id this entry takes over (schemaVersion 4), e.g. "benji_coleman". The entry then adds no NPC:
+        /// the vanilla NPC keeps its name, schedule, home, connections and save data and gets this entry's look,
+        /// clothing and role values. The roles have to match; story and quest NPCs cannot be replaced.
+        /// </summary>
+        public string replaces;
+
+        /// <summary>Voice (schemaVersion 4): <c>{ "from": "benji_coleman", "pitch": 1.1 }</c> uses that vanilla NPC's voice lines.</summary>
+        public VoiceJson voice;
 
         public AppearanceJson appearance;
         public BehaviorJson behavior;
@@ -66,6 +76,14 @@ namespace Personnel.Content
     /// (one message) or a list of strings (several messages in a row). Keys are the vanilla dialogue keys, e.g.
     /// "contract_request" or "deaddrop_ready"; "Module/key" picks the module explicitly.
     /// </summary>
+    public sealed class VoiceJson
+    {
+        /// <summary>Id of the vanilla NPC whose voice lines are used.</summary>
+        public string from;
+        /// <summary>Pitch 0.1..4.</summary>
+        public float? pitch;
+    }
+
     public sealed class LinesJson
     {
         public List<string> greeting;

@@ -96,8 +96,42 @@ namespace Personnel.Cards
         {
             ["code"] = c.Code, ["name"] = c.Name, ["role"] = c.Role, ["creator"] = c.Creator, ["contentHash"] = c.ContentHash,
             ["npcId"] = c.NpcId, ["importedAt"] = c.ImportedAt == default ? null : c.ImportedAt.ToString("o"), ["basedOn"] = c.BasedOn,
-            ["source"] = c.Source,
+            ["source"] = c.Source, ["replaces"] = c.Replaces,
         })).ToString();
+
+        /// <summary>
+        /// Sets which vanilla NPC an installed card takes over (<paramref name="vanillaId"/>), or makes it a new NPC
+        /// again (null or ""). JSON: <c>{ ok, error, superseded: [{ target, pack, npcId, name, code }], pendingRestart }</c>.
+        /// <c>superseded</c> lists the entries that replaced the same NPC before and no longer do.
+        /// </summary>
+        public static string SetReplacement(string code, string vanillaId)
+        {
+            string err = CardLibrary.SetReplacement(code, vanillaId, out var superseded);
+            return new JObject
+            {
+                ["ok"] = err == null, ["error"] = err, ["superseded"] = Entries(superseded), ["pendingRestart"] = CardLibrary.PendingRestart,
+            }.ToString();
+        }
+
+        /// <summary>
+        /// Takes a vanilla NPC away from every pack entry but <paramref name="keepPack"/>/<paramref name="keepId"/>
+        /// (one replacement per vanilla NPC). JSON array of the changed entries.
+        /// </summary>
+        public static string ReleaseTarget(string vanillaId, string keepPack, string keepId) => Entries(CardLibrary.ReleaseTarget(vanillaId, keepPack, keepId)).ToString();
+
+        /// <summary>Every pack entry on disk that takes over a vanilla NPC: JSON array of <c>{ target, pack, npcId, name, code }</c>.</summary>
+        public static string Replacements() => Entries(CardLibrary.Replacements()).ToString();
+
+        /// <summary>
+        /// Why a vanilla NPC cannot be replaced ("a story NPC", ...), or null when it can. Personify uses it to grey out
+        /// targets.
+        /// </summary>
+        public static string BlockReason(string vanillaId) => global::Personnel.Replacements.ReplacementRules.BlockReason(vanillaId);
+
+        private static JArray Entries(IEnumerable<CardLibrary.ReplacementEntry> list) => new JArray((list ?? Enumerable.Empty<CardLibrary.ReplacementEntry>()).Select(s => new JObject
+        {
+            ["target"] = s.Target, ["pack"] = s.Pack, ["npcId"] = s.NpcId, ["name"] = s.Name, ["code"] = s.Code,
+        }));
 
         public static bool Remove(string code) => CardLibrary.Remove(code);
 

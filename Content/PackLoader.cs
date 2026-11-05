@@ -94,7 +94,7 @@ namespace Personnel.Content
             packName != null && packName.EndsWith(ParkedSuffix, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>Highest manifest schemaVersion this loader understands.</summary>
-        public const int SchemaVersion = 3;
+        public const int SchemaVersion = 4;
 
         private static NpcDef ToDef(string packName, string packDir, NpcPackManifest manifest, NpcEntry e)
         {
@@ -119,6 +119,9 @@ namespace Personnel.Content
             {
                 Id = id,
                 SaveId = string.IsNullOrWhiteSpace(e.saveId) ? null : Util.Ids.Normalize(e.saveId),
+                Replaces = string.IsNullOrWhiteSpace(e.replaces) ? null : e.replaces.Trim(),
+                Voice = e.voice == null || (string.IsNullOrWhiteSpace(e.voice.from) && !e.voice.pitch.HasValue) ? null
+                    : new NpcVoice { From = string.IsNullOrWhiteSpace(e.voice.from) ? null : e.voice.from.Trim(), Pitch = e.voice.pitch },
                 DisplayName = display,
                 Source = packName,
                 PackDir = packDir,

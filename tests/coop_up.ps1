@@ -98,13 +98,16 @@ if ($Profile -eq 'main' -or $S1Api) {
         Write-Host 'host did not reach the world'; exit 1
     }
     Write-Host 'host is in the world'
-    # The restarted host created a new lobby; the client joins the id in its own lobby.txt.
-    $lobbyId = (Get-Content -LiteralPath (Join-Path $hostRoot 'UserData\LocalLobby\lobby.txt') -Raw).Trim()
-    $clientLobbyDir = Join-Path $client.root 'UserData\LocalLobby'
-    New-Item -ItemType Directory -Force -Path $clientLobbyDir | Out-Null
-    [System.IO.File]::WriteAllText((Join-Path $clientLobbyDir 'lobby.txt'), $lobbyId)
-    Write-Host "client lobby.txt set to $lobbyId"
 }
+# The client joins the id in its own lobby.txt. duo.ps1 shares it only when shdiag prints a lobbyId, so the host's
+# current lobby.txt is copied over in every profile.
+$hostLobby = Join-Path $hostRoot 'UserData\LocalLobby\lobby.txt'
+if (-not (Test-Path -LiteralPath $hostLobby)) { Write-Host "host wrote no lobby id ($hostLobby missing)"; exit 1 }
+$lobbyId = (Get-Content -LiteralPath $hostLobby -Raw).Trim()
+$clientLobbyDir = Join-Path $client.root 'UserData\LocalLobby'
+New-Item -ItemType Directory -Force -Path $clientLobbyDir | Out-Null
+[System.IO.File]::WriteAllText((Join-Path $clientLobbyDir 'lobby.txt'), $lobbyId)
+Write-Host "client lobby.txt set to $lobbyId"
 Start-Sleep -Seconds 4
 $exe = Join-Path $client.root 'Schedule I.exe'
 

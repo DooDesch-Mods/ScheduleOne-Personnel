@@ -9,7 +9,7 @@
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world
 > as if the mod author had built them in code. Built on [S1API](https://github.com/ifBars/S1API).
 
-![Version](https://img.shields.io/badge/version-2.4.1-blue)
+![Version](https://img.shields.io/badge/version-2.6.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
@@ -42,6 +42,10 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
   own.
 - **Real S1API NPCs, not props.** Prefab, networking, save/load and mugshot are handled by S1API -
   the same machinery hand-coded NPC mods use.
+- **Replace a town NPC.** A pack entry with `"replaces": "benji_coleman"` gives that town NPC its
+  look, clothing, voice and role values. Name, routine, home, contacts and save data stay. Works for
+  customers, dealers, suppliers, police and townsfolk; story NPCs can't be replaced. Remove the pack
+  and the NPC is back to normal.
 - **Deep appearance.** The full avatar-settings surface: body, skin, hair, face, eyes, eyebrows,
   clothing layers, accessories, plus **custom PNG layers** (e.g. tattoos) loaded from the pack folder.
 - **Physical or contact-only.** Most roster NPCs can stay phone contacts (near-zero cost); only the
@@ -57,9 +61,10 @@ since 2.0 a pack can opt into **auto-registration** and needs no mod code at all
 
 ## Screenshots
 
-![A pack NPC driving his own car through town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/driving.jpg)
-
-![The same drive at night](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/night-drive.jpg)
+| | |
+|---|---|
+| ![Benji Coleman as the game ships him](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/replace-before.jpg) | ![Benji Coleman replaced by a pack](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/replace-after.jpg) |
+| ![A pack NPC driving his own car through town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/driving.jpg) | ![The same drive at night](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/night-drive.jpg) |
 
 ## Requirements
 
@@ -144,6 +149,12 @@ the menu character, then hit Export - it writes a ready-to-publish pack. By hand
 - `"police": {}` makes the NPC one more officer of the police station. The game assigns the duties,
   so `spawn` and `schedule` are ignored, and a police belt is added when the look has none. Host and
   client need the same pack.
+- `"replaces": "<town NPC id>"` (schema 4) turns the entry into a replacement of that town NPC
+  instead of a new NPC. Only look, clothing, voice and the role block of the NPC's own role apply;
+  `name`, `spawn`, `schedule` and `relationships` are ignored. One replacement per town NPC: when
+  two packs name the same one, the first pack in folder order wins and the log names the other.
+  Packs are read at game start, so a change takes effect after a restart. In co-op everyone needs
+  the same packs.
 - Enable the example pack (Configuration below) for a complete, working template.
 
 ## For mod developers: spawning the NPCs
