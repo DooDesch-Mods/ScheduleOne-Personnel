@@ -169,8 +169,15 @@ namespace Personnel
                 }
             }
 
-            if (def.Schedule != null && def.Schedule.Count > 0)
+            if (def.Schedule != null && def.Schedule.Count > 0 && !IsPhysical)
             {
+                try { Spawn.ContactOnlySchedule.Apply(gameObject, def.Id); }
+                catch (Exception ex) { Core.Log?.Error($"'{def.Id}': taking the schedule out of a contact-only NPC failed ({ex.Message})."); }
+            }
+            else if (def.Schedule != null && def.Schedule.Count > 0)
+            {
+                Spawn.WalkRequestGuard.Watch(gameObject, def.Id);
+
                 try { Spawn.DoorlessStayGuard.Apply(gameObject, def.Id); }
                 catch (Exception ex) { Core.Log?.Error($"'{def.Id}': checking stay-in-building doors failed ({ex.Message})."); }
 

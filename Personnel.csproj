@@ -138,6 +138,11 @@
       <HintPath>$(GameManagedPath)/UnityEngine.AnimationModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- NavMeshAgent - the path request guard reads whether an NPC's path is still pending. -->
+    <Reference Include="UnityEngine.AIModule">
+      <HintPath>$(GameManagedPath)/UnityEngine.AIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <!-- GUIUtility.systemCopyBuffer - the authoring console copies its JSON straight to the clipboard. -->
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>$(GameManagedPath)/UnityEngine.IMGUIModule.dll</HintPath>
