@@ -4,6 +4,8 @@
 
 **Download:** [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2275) · [Thunderstore](https://thunderstore.io/c/schedule-i/p/DooDesch/Personnel/) · [GitHub Releases](https://github.com/DooDesch-Mods/ScheduleOne-Personnel/releases)
 
+📖 **API documentation:** [docs.doodesch.de/mods/personnel/api/](https://docs.doodesch.de/mods/personnel/api/)
+
 > The NPC framework for Schedule I. Personnel lets anyone ship custom NPCs as simple pack folders -
 > designed in [Personify](https://www.nexusmods.com/schedule1/mods/2276) or written by hand -
 > and lets mods spawn them as real, first-class S1API NPCs: networked, saved, and walking the world

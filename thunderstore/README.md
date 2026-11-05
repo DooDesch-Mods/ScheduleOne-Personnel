@@ -2,6 +2,8 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/personnel](https://support.doodesch.de/personnel).
 
+📖 **API documentation:** [docs.doodesch.de/mods/personnel/api/](https://docs.doodesch.de/mods/personnel/api/)
+
 > **The NPC framework for Schedule I.** NPC packs are plain folders - spawn points, daily schedules,
 > customer/dealer economy, relationships, contacts - and Personnel spawns them as real S1API NPCs:
 > networked, saved, walking their routines. Since 2.0, no mod code needed at all.
