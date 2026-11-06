@@ -3,6 +3,13 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.6.2] - 2026-11-06
+
+### Fixed
+
+- Map markers of pack NPCs show the NPC's name on hover instead of "PoI Main Text".
+- Pack customers whose connections all point to NPCs missing from your game no longer stay locked forever. They start
+  unlocked, and the log names the missing NPCs.
 ## [2.6.1] - 2026-11-05
 
 ### Fixed
