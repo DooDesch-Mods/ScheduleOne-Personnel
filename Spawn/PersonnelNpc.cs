@@ -143,6 +143,9 @@ namespace Personnel
 
             Personnel.Spawn.CustomLines.Apply(gameObject, def);
 
+            try { Spawn.ConnectionUnlockGuard.Watch(gameObject, def); }
+            catch (Exception ex) { Core.Log?.Error($"'{def.Id}': queueing the connection check failed ({ex.Message})."); }
+
             if (!string.IsNullOrWhiteSpace(def.Spawn?.Region))
             {
                 if (Parse.TryParseEnum(def.Spawn.Region, out S1API.Map.Region region)) Region = region;

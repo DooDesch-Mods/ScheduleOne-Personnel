@@ -230,7 +230,9 @@ namespace Personnel
         /// Start state of a customer. Vanilla customers start locked and open through a free sample or a
         /// recommendation, and both need an unlocked connection (Customer.SampleOptionValid ->
         /// RelationData.IsMutuallyKnown). A locked customer without connections could never be opened, so it
-        /// starts locked only when the pack lists connections. relationships.unlocked always wins.
+        /// starts locked only when the pack lists connections. relationships.unlocked always wins. Whether a listed id
+        /// is a real NPC is only known in the loaded save; <see cref="Spawn.ConnectionUnlockGuard"/> unlocks the
+        /// customer then when none of them is.
         /// </summary>
         internal static bool ResolveCustomerUnlocked(NpcDef def)
         {
