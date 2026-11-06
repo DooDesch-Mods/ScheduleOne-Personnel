@@ -92,6 +92,7 @@ namespace Personnel.Tools
                         else Police.PoliceRoster.Report(Log);
                         break;
                     case "replace": ReplaceProbe.Run(Arg(p, 2), Arg(p, 3), Arg(p, 4)); break;
+                    case "map": MapProbe.Run(Arg(p, 2)); break;
                     case "restart":
                         if (int.TryParse(Arg(p, 2), out int slot) && Testing.LaunchMarker.Write(slot, Arg(p, 3)))
                             Testing.LaunchMarker.RestartGame();

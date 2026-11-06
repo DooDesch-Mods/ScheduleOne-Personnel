@@ -416,6 +416,15 @@ namespace Personnel
 
             var poi = UnityEngine.Object.Instantiate(mgr.NPCPoIPrefab, npcRoot.transform);
             poi.SetNPC(npc);
+            // The prefab's label text is the placeholder "PoI Main Text"; vanilla sets its own markers' text
+            // (Dealer: SetMainText(FullName + "\n(Dealer)")), so the name is set here before the UI is built.
+            string name = npc.FullName;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = npc.ID;
+                Core.Log?.Warning($"'{npc.ID}': map marker has no NPC name yet - the label shows the id.");
+            }
+            poi.SetMainText(name);
             poi.enabled = true;
         }
 
