@@ -419,6 +419,7 @@ namespace Personnel.Tools
             sb.Append($"relUnlocked={Safe(() => npc.RelationData.Unlocked)} ");
             sb.Append($"relDelta={Safe(() => npc.RelationData.RelationDelta)} ");
             sb.Append($"unlockType={Safe(() => npc.RelationData.UnlockType)} ");
+            sb.Append($"connections={Safe(() => npc.RelationData.Connections?.Count ?? 0)} ");
 
             S1Customer c = npc.GetComponent<S1Customer>();
             if (c == null) { Log(sb.Append("customer=MISSING").ToString()); return; }
