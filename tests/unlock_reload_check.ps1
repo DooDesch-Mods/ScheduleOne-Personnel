@@ -6,6 +6,7 @@
 #
 #     pwsh -File tests/unlock_reload_check.ps1                    # first free slot, builds and starts it
 #     pwsh -File tests/unlock_reload_check.ps1 -Profile main      # mods as on the real installation
+#     pwsh -File tests/unlock_reload_check.ps1 -Mods Polyfill     # with Polyfill in the stack
 #     pwsh -File tests/unlock_reload_check.ps1 -NoStart -Slot mptest4   # game already running with the probe pack
 #
 # Prints PASS or FAIL per check and exits 1 when any check fails. The game keeps running.
@@ -20,7 +21,9 @@ param(
     # The vanilla customer used as the control; it is locked first, then unlocked like the probe.
     [string]$Vanilla = 'austin_steiner',
     # The pack customer under test; the default is the one this script writes.
-    [string]$ProbeId = 'unlockprobe_una_probe'
+    [string]$ProbeId = 'unlockprobe_una_probe',
+    # More mods for the stack, for example Polyfill.
+    [string[]]$Mods = @()
 )
 $ErrorActionPreference = 'Stop'
 $repo = Resolve-Path (Join-Path $PSScriptRoot '..')
@@ -88,7 +91,7 @@ if (-not $NoStart) {
     Set-Content -LiteralPath (Join-Path $dir 'manifest.json') -Value $json -Encoding utf8
     Write-Host "wrote probe pack $dir"
     $sessionArgs = @('-Slot', $Slot, '-Profile', $Profile, '-Build', (Split-Path $repo -Leaf), '-NoApp', '-Save', "$Save")
-    if ($Profile -eq 'stack') { $sessionArgs += @('-Mods', 'Personnel') }
+    if ($Profile -eq 'stack') { $sessionArgs += @('-Mods', ((@('Personnel') + $Mods) -join ',')) }
     & pwsh -NoProfile -File $session @sessionArgs
     if ($LASTEXITCODE -ne 0) { throw "session.ps1 failed (exit $LASTEXITCODE)" }
 }

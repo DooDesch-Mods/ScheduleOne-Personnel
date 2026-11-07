@@ -17,7 +17,7 @@ namespace Personnel.Tools
     {
         internal static void Run(string filter, string action)
         {
-            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel rel <id> [dump|unlock|direct]"); return; }
+            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel rel <id> [dump|unlock|direct|save]"); return; }
             S1NPC npc = FindExact(filter) ?? CustomerProbe.Find(filter, out _);
             if (npc == null) { Log($"rel: no live NPC matches '{filter}'."); return; }
 
@@ -33,7 +33,30 @@ namespace Personnel.Tools
                 catch (Exception e) { Log($"rel {action} {npc.ID}: Unlock threw {e.GetType().Name}: {e.Message}"); }
                 return;
             }
+            if (string.Equals(action, "save", StringComparison.OrdinalIgnoreCase)) { SaveCheck(npc); return; }
             Dump(npc);
+        }
+
+        /// <summary>
+        /// <c>personnel rel &lt;id&gt; save</c>: whether the NPC reaches the game's NPCs.json - in the registry,
+        /// ShouldSave, GetSaveData, and its id in the string NPCManager.GetSaveString writes.
+        /// </summary>
+        private static void SaveCheck(S1NPC npc)
+        {
+            bool inRegistry = FindExact(npc.ID) != null;
+            string should = CustomerProbe.Safe(() => npc.ShouldSave());
+            string rel = CustomerProbe.Safe(() => npc.ShouldSaveRelationshipData());
+            string native = CustomerProbe.Safe(() => npc.GetIl2CppType().FullName);
+            string data = CustomerProbe.Safe(() => npc.GetSaveData() != null);
+            string inString;
+            try
+            {
+                var mgr = Il2CppScheduleOne.NPCs.NPCManager.Instance;
+                string json = mgr == null ? null : mgr.GetSaveString();
+                inString = json == null ? "no NPCManager" : json.Contains("\\\"" + npc.ID + "\\\"").ToString();
+            }
+            catch (Exception e) { inString = "ERR(" + e.GetType().Name + ": " + e.Message + ")"; }
+            Log($"rel save {npc.ID}: inRegistry={inRegistry} class={native} shouldSave={should} shouldSaveRelation={rel} saveData={data} inSaveString={inString}");
         }
 
         private static void Dump(S1NPC npc)
