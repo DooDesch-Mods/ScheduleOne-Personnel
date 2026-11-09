@@ -9,7 +9,7 @@ using S1NPC = Il2CppScheduleOne.NPCs.NPC;
 namespace Personnel.Tools
 {
     /// <summary>
-    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|guarantee|stock|lock|lockregion|unlockregion|close]</c>.
+    /// Debug-only console probe for Personnel customer NPCs: <c>personnel cust &lt;id-filter&gt; [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|guarantee|stock|lock|lockregion|unlockregion|close|request|convo]</c>.
     /// <c>bring</c> warps the NPC next to the local player, <c>dump</c> (default) logs the customer and behaviour
     /// state the vanilla sale flow depends on, so a stuck sale can be read from the log instead of a screen.
     /// </summary>
@@ -17,7 +17,7 @@ namespace Personnel.Tools
     {
         internal static void Run(string filter, string action)
         {
-            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|guarantee|stock|lock|lockregion|unlockregion|close]"); return; }
+            if (string.IsNullOrWhiteSpace(filter)) { Log("usage: personnel cust <id-filter> [bring|dump|checks|offer|done|deal|hand|talk|net|sample|sampleopen|choose|screen|guarantee|stock|lock|lockregion|unlockregion|close|request|convo]"); return; }
             S1NPC npc = Find(filter, out string id);
             if (npc == null) { Log($"cust: no live NPC matches '{filter}'."); return; }
 
@@ -28,6 +28,8 @@ namespace Personnel.Tools
                 case "offer": Offer(npc, id); break;
                 case "done": Done(npc, id); break;
                 case "deal": Deal(npc, id); break;
+                case "request": Request(npc, id); break;
+                case "convo": Convo(npc, id); break;
                 case "hand": Hand(npc, id); break;
                 case "talk": Talk(npc, id); break;
                 case "net": Net(npc, id); break;
@@ -215,6 +217,43 @@ namespace Personnel.Tools
             catch (Exception e) { Log($"cust deal {id}: ContractAccepted threw {e.GetType().Name}: {e.Message}"); return; }
             Log($"cust deal {id}: contract={(contract != null)} window={window} at {now} " +
                 $"location={Safe(() => contract.DeliveryLocation.LocationName)} stand={Safe(() => contract.DeliveryLocation.CustomerStandPoint.position)}");
+        }
+
+        // A deal request by text, as the customer sends it on its own (Customer.ForceDealOffer -> OfferContract), then
+        // the conversation state it leaves. Host only: the host generates contracts.
+        private static void Request(S1NPC npc, string id)
+        {
+            S1Customer c = npc.GetComponent<S1Customer>();
+            if (c == null) { Log($"cust request {id}: customer MISSING"); return; }
+            if (!Il2CppFishNet.InstanceFinder.IsServer) { Log($"cust request {id}: host only."); return; }
+            try { c.ForceDealOffer(); }
+            catch (Exception e) { Log($"cust request {id}: ForceDealOffer threw {e.GetType().Name}: {e.Message}"); return; }
+            Log($"cust request {id}: offered={Safe(() => c.OfferedContractInfo != null)}");
+            Convo(npc, id);
+        }
+
+        // The open deal request and the response buttons of the NPC's text conversation. A button without a callback
+        // does nothing when clicked; no button means the request cannot be answered.
+        private static void Convo(S1NPC npc, string id)
+        {
+            S1Customer c = npc.GetComponent<S1Customer>();
+            var convo = npc.MSGConversation;
+            var sb = new StringBuilder();
+            sb.Append($"cust convo {id}: offered={Safe(() => c != null && c.OfferedContractInfo != null)} convo={(convo != null)} ");
+            if (convo != null)
+            {
+                sb.Append($"responses={Safe(() => convo.currentResponses.Count)} ui={Safe(() => convo.responseRects?.Count ?? -1)} ");
+                try
+                {
+                    for (int i = 0; i < convo.currentResponses.Count; i++)
+                    {
+                        var r = convo.currentResponses[i];
+                        sb.Append($"[{Safe(() => r.label)} cb={Safe(() => r.callback != null)}]");
+                    }
+                }
+                catch (Exception e) { sb.Append($"ERR({e.GetType().Name}: {e.Message})"); }
+            }
+            Log(sb.ToString());
         }
 
         // The two gates of the "[Complete Deal]" choice (Customer.IsReadyForHandover, Customer.IsHandoverChoiceValid)
