@@ -148,6 +148,11 @@ namespace Personnel.Model
         public float Aggression = 0f;
         public float MaxHealth = 100f;
         public float Scale = 1f;
+        /// <summary>True: the NPC attacks any player it sees (vanilla sight and give-up rules). Host decides.</summary>
+        public bool Hostile = false;
+        /// <summary>Vanilla weapon the NPC fights with: a name from <see cref="Spawn.HostileBrain.Weapons"/>
+        /// ("knife", "revolver", ...) or an asset path. Empty = fists.</summary>
+        public string Weapon = "";
         /// <summary>"none" | "customer" | "dealer".</summary>
         public string Conversation = "none";
     }

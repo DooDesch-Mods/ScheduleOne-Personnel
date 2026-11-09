@@ -52,6 +52,7 @@ namespace Personnel
         public override void OnUpdate()
         {
             Cards.VaultClient.Pump();
+            Spawn.HostileBrain.Tick();
 #if DEBUG
             Spawn.WalkRequestGuard.ReportWalkResults();
 #endif

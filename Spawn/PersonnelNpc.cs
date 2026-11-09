@@ -170,6 +170,9 @@ namespace Personnel
                 {
                     Core.Log?.Warning($"'{def.Id}': applying behavior stats failed ({ex.Message}).");
                 }
+
+                try { Spawn.HostileBrain.Apply(gameObject, def); }
+                catch (Exception ex) { Core.Log?.Error($"'{def.Id}': applying weapon and hostile failed ({ex.Message})."); }
             }
 
             if (def.Schedule != null && def.Schedule.Count > 0 && !IsPhysical)
