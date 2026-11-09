@@ -3,6 +3,24 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.7.0] - 2026-11-09
+
+### Added
+
+- Hostile NPCs: a pack can make an NPC attack players on sight, with the weapon the pack picks.
+
+### Fixed
+
+- The Aggression setting now reaches the NPC. Aggressive NPCs fight back when you annoy, hit or pickpocket them.
+
+### For mod authors
+
+- `behavior.hostile: true` attacks any player the NPC sees (25 m), with at least 3 s between fights. Host only.
+- `behavior.weapon`: `fists` (default), `baton`, `brokenbottle`, `knife`, `m1911`, `m1911_gold`, `pumpshotgun`,
+  `revolver`, `taser` or an `Avatar/Equippables/...` path.
+- An unknown `behavior.weapon` name logs a warning, and the NPC fights with fists.
+- `extensions.backrooms.hostile` stays Backrooms-only and does not make an NPC hostile in the normal world.
+
 ## [2.6.2] - 2026-11-06
 
 ### Fixed
