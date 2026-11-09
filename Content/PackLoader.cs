@@ -221,6 +221,8 @@ namespace Personnel.Content
             if (b.aggression.HasValue) beh.Aggression = b.aggression.Value;
             if (b.maxHealth.HasValue) beh.MaxHealth = b.maxHealth.Value;
             if (b.scale.HasValue) beh.Scale = b.scale.Value;
+            if (b.hostile.HasValue) beh.Hostile = b.hostile.Value;
+            if (!string.IsNullOrWhiteSpace(b.weapon)) beh.Weapon = b.weapon.Trim();
             if (!string.IsNullOrWhiteSpace(b.conversation)) beh.Conversation = b.conversation;
             return beh;
         }

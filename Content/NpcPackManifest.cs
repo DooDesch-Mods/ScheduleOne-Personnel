@@ -150,6 +150,8 @@ namespace Personnel.Content
         public float? aggression;
         public float? maxHealth;
         public float? scale;
+        public bool? hostile;
+        public string weapon;
         public string conversation;
     }
 
