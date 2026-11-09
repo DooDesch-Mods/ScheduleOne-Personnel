@@ -162,7 +162,7 @@ namespace Personnel
             {
                 try
                 {
-                    Aggressiveness = def.Behavior.Aggression;
+                    Spawn.AggressionSetter.Apply(gameObject, def);
                     MaxHealth = def.Behavior.MaxHealth;
                     if (def.Behavior.Scale > 0f) Scale = def.Behavior.Scale;
                 }

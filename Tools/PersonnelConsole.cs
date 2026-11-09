@@ -83,6 +83,7 @@ namespace Personnel.Tools
 #if DEBUG
                     case "cust": CustomerProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "avatar": AvatarProbe.Run(Arg(p, 2)); break;
+                    case "aggr": CombatProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "rel": RelationProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "line": RelationProbe.Line(Arg(p, 2), Arg(p, 3), Arg(p, 4)); break;
                     case "supplier": SupplierProbe.Run(Arg(p, 2), Arg(p, 3), Arg(p, 4), Arg(p, 5)); break;
