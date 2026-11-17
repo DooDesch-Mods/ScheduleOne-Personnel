@@ -3,6 +3,12 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.8.0] - 2026-11-17
+
+### Added
+
+- Co-op: a player whose NPC packs differ from the host's gets a notice on join that names the missing and extra packs.
+
 ## [2.7.0] - 2026-11-09
 
 ### Added
