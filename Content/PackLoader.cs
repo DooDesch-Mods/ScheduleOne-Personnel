@@ -23,6 +23,7 @@ namespace Personnel.Content
         {
             var defs = new List<NpcDef>();
             string root = PacksRoot;
+            PackSync.Clear();
 
             try
             {
@@ -74,6 +75,7 @@ namespace Personnel.Content
                         if (def != null) { defs.Add(def); added++; addedIds.Add(def.Id); }
                     }
                     Core.Log?.Msg($"Pack '{packName}' ({manifest.name ?? "unnamed"}): {added} NPC(s) [{string.Join(", ", addedIds)}].");
+                    PackSync.Record(packName, addedIds);
                 }
                 catch (Exception ex)
                 {

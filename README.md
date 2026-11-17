@@ -107,7 +107,8 @@ An NPC pack is just a folder under:
 containing a `manifest.json` and any PNGs it references. On startup Personnel logs each loaded pack
 with the NPC ids it provides. Packs with `autoRegister` bring their NPCs into the world by
 themselves; older appearance-only packs are used by whatever consumer mod spawns them. In co-op,
-everyone needs the same packs installed - the same rule as for mods.
+everyone needs the same packs installed - the same rule as for mods. A player whose packs differ
+from the host's gets a notice on join that names the missing and extra packs.
 
 ## For pack authors: the pack format
 
