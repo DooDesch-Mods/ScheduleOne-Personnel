@@ -115,6 +115,11 @@
       <HintPath>$(GameManagedPath)/Il2CppScheduleOne.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Steamworks.NET (IL2CPP): the host's NPC pack list on the Steam lobby (Content/PackSync.cs). -->
+    <Reference Include="Il2Cppcom.rlabrecque.steamworks.net">
+      <HintPath>$(GameManagedPath)/Il2Cppcom.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <!-- NPCManager is a FishNet NetworkSingleton; referenced so its inherited statics resolve when adding
          the map marker (see API.AddMapMarker). -->
     <Reference Include="Il2CppFishNet.Runtime">
@@ -146,6 +151,24 @@
     <!-- GUIUtility.systemCopyBuffer - the authoring console copies its JSON straight to the clipboard. -->
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>$(GameManagedPath)/UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Canvas, CanvasScaler, layout groups and TextMeshPro: the pack notice draws the vanilla notification
+         on its own overlay canvas (Content/PackSync.cs). -->
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(GameManagedPath)/UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(GameManagedPath)/UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(GameManagedPath)/UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(GameManagedPath)/Unity.TextMeshPro.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

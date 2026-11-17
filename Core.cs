@@ -53,6 +53,7 @@ namespace Personnel
         {
             Cards.VaultClient.Pump();
             Spawn.HostileBrain.Tick();
+            PackSync.Tick();
 #if DEBUG
             Spawn.WalkRequestGuard.ReportWalkResults();
 #endif

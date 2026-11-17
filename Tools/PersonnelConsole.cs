@@ -84,6 +84,17 @@ namespace Personnel.Tools
                     case "cust": CustomerProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "avatar": AvatarProbe.Run(Arg(p, 2)); break;
                     case "aggr": CombatProbe.Run(Arg(p, 2), Arg(p, 3)); break;
+                    case "equip": EquipProbe.Run(Arg(p, 2), Arg(p, 3)); break;
+                    case "intro":
+                        if (Arg(p, 2) != "done") { Log("usage: personnel intro done"); break; }
+                        IntroSkip.Run();
+                        break;
+                    case "hud": HudProbe.Run(); break;
+                    case "packs":
+                        Log($"packs: {Content.PackSync.LastResult}; ours {Content.PackSync.Serialize()}");
+                        if (Arg(p, 2) == "notice")
+                            Log(Content.PackSync.RequeueLastNotice() ? "packs: notice queued again" : "packs: no notice to show");
+                        break;
                     case "rel": RelationProbe.Run(Arg(p, 2), Arg(p, 3)); break;
                     case "line": RelationProbe.Line(Arg(p, 2), Arg(p, 3), Arg(p, 4)); break;
                     case "supplier": SupplierProbe.Run(Arg(p, 2), Arg(p, 3), Arg(p, 4), Arg(p, 5)); break;
