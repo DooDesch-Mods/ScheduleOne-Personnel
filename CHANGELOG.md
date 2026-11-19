@@ -3,6 +3,12 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.8.1] - 2026-11-19
+
+### Fixed
+
+- Pack NPCs without a spawn position now start at the first place of their routine instead of behind the gas mart.
+
 ## [2.8.0] - 2026-11-17
 
 ### Added
