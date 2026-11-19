@@ -11,9 +11,8 @@ namespace Personnel.Spawn
     /// Region of an NPC whose pack sets no spawn.region. Vanilla's NPC.Region field defaults to Downtown, and the free
     /// sample asks for the NPC's region to be unlocked (Customer.SampleOptionValid), so a customer who lives in
     /// Northtown would show "'Downtown' region must be unlocked" until the player reaches Downtown. The region is taken
-    /// from where the NPC lives instead: the spawn position, else the first schedule step with a position, else the
-    /// first stay-in-building step's building. The buildings only exist in the Main scene, so this runs per NPC
-    /// instance.
+    /// from where the NPC lives instead (<see cref="Spawn.HomePoint.FromDef"/>), else the first stay-in-building event's
+    /// building on the NPC. The buildings only exist in the Main scene, so this runs per NPC instance.
     /// </summary>
     internal static class RegionDefault
     {
@@ -39,10 +38,7 @@ namespace Personnel.Spawn
 
         private static Vector3? HomePoint(GameObject npc, NpcDef def, out string source)
         {
-            if (def.Spawn?.Position is Vector3 spawn) { source = "spawn position"; return spawn; }
-            if (def.Schedule != null)
-                foreach (var step in def.Schedule)
-                    if (step?.Position is Vector3 p) { source = $"schedule step '{step.Type}'"; return p; }
+            if (Spawn.HomePoint.FromDef(def, out source) is Vector3 home) return home;
             foreach (NPCEvent_StayInBuilding stay in npc.GetComponentsInChildren<NPCEvent_StayInBuilding>(true))
             {
                 if (stay == null || !stay.gameObject.activeSelf || stay.Building == null) continue;

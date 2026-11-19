@@ -175,6 +175,12 @@ namespace Personnel
                 catch (Exception ex) { Core.Log?.Error($"'{def.Id}': applying weapon and hostile failed ({ex.Message})."); }
             }
 
+            if (IsPhysical)
+            {
+                try { Spawn.SpawnPlacement.Apply(this, def); }
+                catch (Exception ex) { Core.Log?.Error($"'{def.Id}': placing the NPC at its home point failed ({ex.GetType().Name}: {ex.Message})."); }
+            }
+
             if (def.Schedule != null && def.Schedule.Count > 0 && !IsPhysical)
             {
                 try { Spawn.ContactOnlySchedule.Apply(gameObject, def.Id); }
