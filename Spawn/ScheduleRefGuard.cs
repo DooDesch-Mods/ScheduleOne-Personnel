@@ -54,33 +54,64 @@ namespace Personnel.Spawn
 
         private static string At(NpcScheduleAction a) => a.Time >= 0 ? a.Time.ToString("D4") : "(no time)";
 
-        private static bool SeatExists(string path, string name)
+        private static bool SeatExists(string path, string name) => FindSeatSetCached(path, name) != null;
+
+        /// <summary>The seat set a sit step names, with the same lookup as the check above; null when none matches.</summary>
+        internal static AvatarSeatSet FindSeatSet(string path, string name)
+        {
+            Refresh();
+            return FindSeatSetCached(path, name);
+        }
+
+        /// <summary>The building a stay-in-building step names (BuildingName, case-insensitive); null when none matches.</summary>
+        internal static NPCEnterableBuilding FindBuilding(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            Refresh();
+            return _buildingObjects.TryGetValue(name.Trim(), out NPCEnterableBuilding b) ? b : null;
+        }
+
+        private static AvatarSeatSet FindSeatSetCached(string path, string name)
         {
             if (!string.IsNullOrWhiteSpace(path))
             {
                 string p = path.Trim().Replace('\\', '/');
-                foreach (string full in _seatPaths)
-                    if (full.EndsWith(p, StringComparison.OrdinalIgnoreCase)) return true;
+                for (int i = 0; i < _seatPaths.Count; i++)
+                    if (_seatPaths[i].EndsWith(p, StringComparison.OrdinalIgnoreCase)) return _seatSets[i];
             }
-            return !string.IsNullOrWhiteSpace(name) && _seatNames.Contains(name.Trim());
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            return _seatsByName.TryGetValue(name.Trim(), out AvatarSeatSet s) ? s : null;
         }
+
+        private static List<AvatarSeatSet> _seatSets;
+        private static Dictionary<string, AvatarSeatSet> _seatsByName;
+        private static Dictionary<string, NPCEnterableBuilding> _buildingObjects;
 
         private static void Refresh()
         {
             if (_cacheFrame == Time.frameCount && _seatPaths != null) return;
             _cacheFrame = Time.frameCount;
             _seatPaths = new List<string>();
+            _seatSets = new List<AvatarSeatSet>();
             _seatNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _seatsByName = new Dictionary<string, AvatarSeatSet>(StringComparer.OrdinalIgnoreCase);
             _buildings = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _buildingObjects = new Dictionary<string, NPCEnterableBuilding>(StringComparer.OrdinalIgnoreCase);
 
             foreach (AvatarSeatSet s in UnityEngine.Object.FindObjectsOfType<AvatarSeatSet>(true))
             {
                 if (s == null) continue;
                 _seatPaths.Add(PathOf(s.transform));
+                _seatSets.Add(s);
                 _seatNames.Add(s.gameObject.name);
+                if (!_seatsByName.ContainsKey(s.gameObject.name)) _seatsByName[s.gameObject.name] = s;
             }
             foreach (NPCEnterableBuilding b in UnityEngine.Object.FindObjectsOfType<NPCEnterableBuilding>(true))
-                if (b != null && !string.IsNullOrEmpty(b.BuildingName)) _buildings.Add(b.BuildingName);
+                if (b != null && !string.IsNullOrEmpty(b.BuildingName))
+                {
+                    _buildings.Add(b.BuildingName);
+                    if (!_buildingObjects.ContainsKey(b.BuildingName)) _buildingObjects[b.BuildingName] = b;
+                }
 
             if (_seatPaths.Count == 0 || _buildings.Count == 0)
                 Core.Log?.Warning($"[schedule check] the scene lists {_seatPaths.Count} seat set(s) and {_buildings.Count} building(s); seat and building warnings below may be wrong.");
