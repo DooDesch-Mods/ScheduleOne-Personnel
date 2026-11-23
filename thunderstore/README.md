@@ -14,7 +14,7 @@
 ![S1API](https://img.shields.io/badge/S1API-required-orange)
 [![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de) [![Polyfill](https://polyfill.doomods.com/badge/personnel.svg)](https://polyfill.doomods.com/mod/personnel)
 
-[![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_yjFmX9f6yp2SmiE8W5xxaHRt/badge.svg)](https://mlvscan.com/attestations/att_yjFmX9f6yp2SmiE8W5xxaHRt)
+[![MLVScan Personnel.dll](https://mlvscan.com/attestations/att_z-AFc-7EZ6LEr1FcPPkVZLT7/badge.svg)](https://mlvscan.com/attestations/att_z-AFc-7EZ6LEr1FcPPkVZLT7)
 
 ![A pack NPC next to the car he drove across town](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-Personnel/main/docs/img/header.jpg)
 
