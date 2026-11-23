@@ -3,6 +3,12 @@
 All notable changes to Personnel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.8.2] - 2026-11-23
+
+### Fixed
+
+- Deal requests by text keep their Accept, Counteroffer and Reject buttons after loading a save with other custom NPCs installed.
+
 ## [2.8.1] - 2026-11-19
 
 ### Fixed
